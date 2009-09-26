@@ -3,6 +3,7 @@ MIT-LICENSE
 Manifest
 README.rdoc
 Rakefile
+authlogic_rpx.gemspec
 init.rb
 lib/authlogic_rpx.rb
 lib/authlogic_rpx/acts_as_authentic.rb

@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{authlogic_rpx}
-  s.version = "1.0.0"
+  s.version = "1.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Paul Gallagher / tardate"]
@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = %q{Authlogic extension/plugin that provides RPX (rpxnow.com) authentication support}
   s.email = %q{gallagher.paul@gmail.com}
   s.extra_rdoc_files = ["CHANGELOG.rdoc", "README.rdoc", "lib/authlogic_rpx.rb", "lib/authlogic_rpx/acts_as_authentic.rb", "lib/authlogic_rpx/helper.rb", "lib/authlogic_rpx/session.rb", "lib/authlogic_rpx/version.rb"]
-  s.files = ["CHANGELOG.rdoc", "MIT-LICENSE", "Manifest", "README.rdoc", "Rakefile", "init.rb", "lib/authlogic_rpx.rb", "lib/authlogic_rpx/acts_as_authentic.rb", "lib/authlogic_rpx/helper.rb", "lib/authlogic_rpx/session.rb", "lib/authlogic_rpx/version.rb", "rails/init.rb", "test/acts_as_authentic_test.rb", "test/fixtures/users.yml", "test/libs/rails_trickery.rb", "test/libs/user.rb", "test/libs/user_session.rb", "test/session_test.rb", "test/test_helper.rb", "authlogic_rpx.gemspec"]
+  s.files = ["CHANGELOG.rdoc", "MIT-LICENSE", "Manifest", "README.rdoc", "Rakefile", "authlogic_rpx.gemspec", "init.rb", "lib/authlogic_rpx.rb", "lib/authlogic_rpx/acts_as_authentic.rb", "lib/authlogic_rpx/helper.rb", "lib/authlogic_rpx/session.rb", "lib/authlogic_rpx/version.rb", "rails/init.rb", "test/acts_as_authentic_test.rb", "test/fixtures/users.yml", "test/libs/rails_trickery.rb", "test/libs/user.rb", "test/libs/user_session.rb", "test/session_test.rb", "test/test_helper.rb"]
   s.homepage = %q{http://github.com/tardate/authlogic_rpx}
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Authlogic_rpx", "--main", "README.rdoc"]
   s.require_paths = ["lib"]
