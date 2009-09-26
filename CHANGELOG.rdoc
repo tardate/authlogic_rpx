@@ -1,3 +1,9 @@
+== 1.0.1 released 2009-09-26
+
+* Initial public release
+* RPX profile mappings switched to use indirect Authlogic field naming
+* Documentation updated
+
 == 1.0.0 released 2009-09-25
 
 * Initial release
