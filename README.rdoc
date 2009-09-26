@@ -1,0 +1,436 @@
+= Authlogic RPX
+
+== Purpose
+
+Authlogic RPX is an Authlogic extension library that provides support for authentication using the RPX multi-authentication service offered by JanRain. To use RPX, you must first register your application at {RPX}[http://rpxnow.com/]. A free "Basic" account is available, in addition to paid enhanced versions. All work with Authlogic_RPX.  
+
+Key features and capabilities:
+* Auto-registration by default following RPX authentication (can be disabled if required)
+* Can allow users to enable RPX authentication for their existing password-enabled accounts
+* View helpers to assist with inserting login fragments in pages
+* Can co-exist with standard password authentication
+
+
+== Authlogic_RPX References
+
+*	<b>Authlogic_RPX gem repo:</b> [http://github.com/tardate/authlogic_rpx]
+*	<b>Authlogic_RPX issues and feedback:</b> [http://github.com/tardate/authlogic_rpx/issues]
+
+The demonstration Rails application is where you can see Authlogic_RPX in action:
+* <b>Live Demonstration Site:</b> [http://rails-authlogic-rpx-sample.heroku.com]
+* <b>Demonstration site source repository:</b> [http://github.com/tardate/rails-authlogic-rpx-sample]
+
+== Authlogic and RPX References
+
+*	<b>Authlogic documentation:</b> [http://rdoc.info/projects/binarylogic/authlogic]
+*	<b>Authlogic repo:</b> [http://github.com/binarylogic/authlogic]
+*	<b>RPX documentation:</b> [https://rpxnow.com/docs]
+*	<b>RPX_now gem repo:</b> [http://github.com/grosser/rpx_now]
+
+
+== Installing Authlogic RPX gem
+
+Three gems are required: authlogic, grosser-rpx_now, and tardate-authlogic_rpx. Install these as appropriate to your environment and preferences.
+
+Currently tested versions:
+* authlogic 2.1.1
+* grosser-rpx_now 0.5.10
+* tardate-authlogic_rpx 1.0.0
+
+
+=== 1. Direct gem installation
+
+  sudo gem install authlogic
+  sudo gem install grosser-rpx_now --source http://gems.github.com
+  sudo gem install tardate-authlogic_rpx --source http://gems.github.com
+
+
+=== 2. Using Rails config.gems
+
+Include in config/environment.rb:
+  
+  config.gem "authlogic"
+  config.gem "grosser-rpx_now", :lib => "rpx_now", :source => 'http://gems.github.com'
+  config.gem "tardate-authlogic_rpx", :lib => "authlogic_rpx", :source => 'http://gems.github.com'
+
+Then to install, run from the command line:
+
+  sudo rake gems:install
+
+
+=== 3. Using .gems file (e.g for heroku.com deployments)
+
+Include in RAILS_ROOT/.gems:
+  
+  authlogic
+  grosser-rpx_now --source gems.github.com
+  tardate-authlogic_rpx --source gems.github.com
+
+
+== Using Authlogic RPX
+
+<i>Note: in what follows, the user model is called User and the session controller takes the name UserSession (the authlogic convention). You are not restricted to these names - could be Member and MemberSession for example - but for simplicity, this documentation will stick to using the "User" convention.</i>
+
+Using Authlogic RPX is very similar to using standard authlogic, with the addition of just a few configuration options. So if you already have a project setup with authlogic, adding RPX support will be trivial.
+
+An important capability to be aware of is "auto registration". This means that when a user has logged in with RPX, if an account does not already exist in your application, it will be automatically created. That is, there is no separate/special "register" step for users to go through before just signing in. You can disable this if you need, but for most sites that use RPX as a primary authentication mechanism, this is probably what you want to happen.
+
+The main steps for enabling Authlogic RPX: 
+* 1. Enable RPX for your user model
+* 2. Add RPX configuration for the Authlogic session model
+* 3 Add custom user profile mapping (optional)
+* 4. Add application controller helpers: current_user, current_user_session
+* 5. Setup the Authlogic session controller
+* 6. Setup the Authlogic user controller
+* 7. Use view helpers to provide login links
+* 8. Allow users to "Add RPX" to existing accounts (optional)
+
+
+=== 1. Enable RPX for your user model
+
+The user model requires an additional field called "rpx_identifier". Creat a migration to add this. 
+You may need to remove database constraints on other fields if they will be unused in the RPX case (e.g. crypted_password and password_salt to make password authentication optional)
+
+  class AddUsersRpxIdentifier < ActiveRecord::Migration
+    def self.up
+      add_column :users, :rpx_identifier, :string
+      add_index :users, :rpx_identifier
+
+      change_column :users, :crypted_password, :string, :default => nil, :null => true
+      change_column :users, :password_salt, :string, :default => nil, :null => true
+      
+    end
+
+    def self.down
+      remove_column :users, :openid_identifier
+
+      [:crypted_password, :password_salt].each do |field|
+        User.all(:conditions => "#{field} is NULL").each { |user| user.update_attribute(field, "") if user.send(field).nil? }
+        change_column :users, field, :string, :default => "", :null => false
+      end
+    end
+  end
+
+The user model then needs to be tagged with "acts_as_authentic", and you must add rpx_identifier to the attr_accessible configuration (if you are using it)
+
+  class User < ActiveRecord::Base
+  	acts_as_authentic do |c|
+      c.my_config_option = my_value # for available options see documentation in: Authlogic::ActsAsAuthentic
+    end # block optional
+  	attr_accessible :username, :email, :password, :password_confirmation, :rpx_identifier
+  end
+
+{See the source for the sample user.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user.rb].
+
+
+=== 2. Add RPX configuration for the Authlogic session model
+
+Authlogic provides a helper to create the session model:
+  
+  script/generate session user_session
+
+The minimum configuration required is to add your RPX_API_KEY:  
+
+  class UserSession < Authlogic::Session::Base
+  	rpx_key RPX_API_KEY
+  end
+
+Get an API key by registering your application at {RPX}[http://rpxnow.com/]. A free "Basic" account is available, in addition to paid enhanced versions. All work with Authlogic_RPX.
+
+You probably don't want to put your API key in directly. A recommended approach is to set the key as an environment variable, and then set it as a constant in config/environment.rb:
+  
+  RPX_API_KEY = ENV['RPX_API_KEY']
+
+Two additional RPX-specific session configuration options are available.
+* auto_register: enable/disable user auto-registration (enabled by default)
+* rpx_extended_info: enable/disable extended profile information in the RPX authentication (disabled by default)
+
+For example, to disable auto-registration and enable extended info:
+  
+  class UserSession < Authlogic::Session::Base
+  	rpx_key RPX_API_KEY
+  	auto_register false
+  	rpx_extended_info
+  end
+
+{See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
+
+=== 3. Add custom user profile mapping (optional)
+When users auto-register, profile data from RPX is available to be inserted in the user's record on your site. By default, authlogic_rpx will map the username and email fields.
+
+If you have other fields you want to map, you can provide your own implementation of the map_rpx_data method in the UserSession model. In that method, you will be updating the "self.attempted_record" object, with information from the "@rpx_data" object. See the {RPX documentation}[https://rpxnow.com/docs#profile_data] to find out about the set of information that is available. 
+
+  class UserSession < Authlogic::Session::Base
+  	rpx_key RPX_API_KEY
+  	rpx_extended_info
+  	
+  private
+  
+  	# map_rpx_data maps additional fields from the RPX response into the user object
+  	# override this in your session controller to change the field mapping
+  	# see https://rpxnow.com/docs#profile_data for the definition of available attributes
+  	#
+      def map_rpx_data
+		# map core profile data using authlogic indirect column names
+		self.attempted_record.send("#{klass.login_field}=", @rpx_data['profile']['preferredUsername'] ) if attempted_record.send(klass.login_field).blank?
+		self.attempted_record.send("#{klass.email_field}=", @rpx_data['profile']['email'] ) if attempted_record.send(klass.email_field).blank?
+
+		# map some other columns explicityl
+		self.attempted_record.fullname = @rpx_data['profile']['displayName'] if attempted_record.fullname.blank?
+  
+  		if rpx_extended_info?
+  			# map some extended attributes
+  		end
+  	end
+  	
+  end
+
+=== 4. Add application controller helpers: current_user, current_user_session
+
+We'll add current_user and current_user_session helpers. These can then be used in controllers and views to get a handle on the "current" logged in user.
+
+  class ApplicationController < ActionController::Base
+    helper :all # include all helpers, all the time
+    protect_from_forgery # See ActionController::RequestForgeryProtection for details
+  
+    # Scrub sensitive parameters from your log
+    filter_parameter_logging :password, :password_confirmation
+    
+    helper_method :current_user, :current_user_session
+    
+    private
+    
+  	def current_user_session
+  		return @current_user_session if defined?(@current_user_session)
+  		@current_user_session = UserSession.find
+  	end
+  
+  	def current_user
+  		return @current_user if defined?(@current_user)
+  		@current_user = current_user_session && current_user_session.record
+  	end
+  end
+
+{See the source for the sample user_session_controller.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/controllers/application_controller.rb].
+
+
+=== 5. Setup the Authlogic session controller
+
+If you don't already have a user session controller, create one. There are four actions of significance for authlogic_rpx:
+  
+  $ script/generate controller user_sessions index new create destroy
+
+{See the source for the sample user_session_controller.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/controllers/user_sessions_controller.rb].
+
+In config/routes.rb we can define the standard routes for this controller and two named routes for the main login/out (or singin/out if you prefer that terminology):
+
+  map.signin "signin", :controller => "user_sessions", :action => "new"
+  map.signout "signout", :controller => "user_sessions", :action => "destroy"
+  map.resources :user_sessions
+
+==== index
+This is where RPX will return to if the user cancelled the login process, so it needs to be handled. You probably just want to redirect the user to an appropriate alternative:
+  
+	def index
+		redirect_to current_user ? root_url : new_user_session_url
+	end
+
+==== new
+Typically used to render a login form
+
+	def new
+		@user_session = UserSession.new
+	end
+
+==== create
+This is where the magic happens for authentication. Authlogic hides all the underlying wiring, and you just need to "save" the session!
+
+Authlogic_rpx provides two additional methods that you might want to use to tailor you application behaviour:
+* new_registration? - if a new registration, e.g. force them to go via a registration follow-up page
+* registration_complete? - if registration details not complete, e.g. bounce the user over the profile editing page
+
+	def create
+		@user_session = UserSession.new(params[:user_session])
+		if @user_session.save
+			if @user_session.new_registration?
+				flash[:notice] = "Welcome! As a new user, please review your registration details before continuing.."
+				redirect_to edit_user_path( :current )
+			else
+				if @user_session.registration_complete?
+					flash[:notice] = "Successfully signed in."
+					redirect_back_or_default articles_path
+				else
+					flash[:notice] = "Welcome back! Please complete required registration details before continuing.."
+					redirect_to edit_user_path( :current )
+				end
+			end
+		else
+			flash[:error] = "Failed to login or register."
+			redirect_to new_user_session_path
+		end
+	end
+
+==== destroy
+The logout action..
+
+	def destroy
+		@user_session = current_user_session
+		@user_session.destroy if @user_session
+		flash[:notice] = "Successfully signed out."
+		redirect_to articles_path
+	end
+
+
+=== 6. Setup the Authlogic user controller
+
+The users controller handles the actual user creation and editing actions. In it's standard form, it looks like any other controller with an underlying ActiveRecord model.
+
+There are five basic actions to consider. If you don't already have a controller, create it:
+  
+  $ script/generate controller users new create edit show update
+
+{See the source for the sample users_controller.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/controllers/users_controller.rb].
+
+The users controller just needs standard routes defined in config/routes.rb:
+
+  map.resources :users
+  
+==== new
+Stock standard form for a user to register on the site. Only required if you will allow users to register without using RPX auto-registration (using standard password authentication).
+
+	def new
+		@user = User.new
+	end
+	
+==== create
+As for new, stock standard and only required if you will allow users to register without using RPX auto-registration.
+
+	def create
+		@user = User.new(params[:user])
+		if @user.save
+			flash[:notice] = "Successfully registered user."
+			redirect_to articles_path
+		else
+			render :action => 'new'
+		end
+	end
+	
+==== show
+Display's the user's profile. Uses the current_user helper that we'll include in the application controller.
+
+	def show
+		@user = current_user
+	end
+	
+==== edit
+Allows the user to edit their profile. Calling valid? will ensure any validation errors are highlighted. This can be relevant with RPX since auto-registration may not include all the profile data you want to make "mandatory" for normal users.
+
+	def edit
+		@user = current_user
+		@user.valid?
+	end
+
+==== update
+Handles the submission of the edit form. Again, uses the current_user helper that we'll include in the application controller.
+
+	def update
+		@user = current_user
+		@user.attributes = params[:user]
+		if @user.save
+			flash[:notice] = "Successfully updated user."
+			redirect_back_or_default articles_path
+		else
+			render :action => 'edit'
+		end
+	end
+
+
+=== 7. Use view helpers to provide login links
+
+So how to put a "login" link on your page? Two helper methods are provided:
+* <b>rpx_popup</b> helper to insert a link to pop-up RPX login
+* <b>rpx_embed</b> helper to insert an embedded iframe RPX login form
+
+Each takes an options hash:
+* <tt>link_text:</tt> text to use in the link (only used by rpx_popup)
+* <tt>app_name:</tt> name of the application (will be prepended to RPX domain and used in RPX dialogues)
+* <tt>return_url:</tt> url for the RPX callback (e.g. user_sessions_url)
+* <tt>add_rpx:</tt> Optional. If true, requests RPX callback to add to current session. Else runs normal authentication process (default). See "7. Allow users to "Add RPX" to existing accounts"
+
+For example, to insert a login link in a navigation bar is as simple as this:
+
+		&lt;div id="user_nav"&gt;
+			&lt;%= link_to "Home", root_path %&gt; |
+			&lt;% if current_user %&gt;
+				&lt;%= link_to "Profile", user_path(:current) %&gt; |
+				&lt;%= link_to "Sign out", signout_path %&gt;
+			&lt;% else %&gt;
+				&lt;%= rpx_popup( :link_text => "Register/Sign in with RPX..", :app_name => "rails-authlogic-rpx-sample", :return_url => user_sessions_url ) %>&gt;
+			&lt;% end %&gt;
+		&lt;/div&gt;
+
+=== 8. Allow users to "Add RPX" to existing accounts (optional)
+
+If you got this far and have a working application, you are ready to go, especially if you only plan to support RPX authentication.
+
+However, if you support other authentication methods (e.g. by password), you probably want the ability to let user's add RPX to an existing account. This is not possible by default, however adding it is simply a matter of providing another method on your user controller.
+
+The route may be called anything you like. Let's use "addrpxauth" for example. 
+
+	# This action has the special purpose of receiving an update of the RPX identity information
+	# for current user - to add RPX authentication to an existing non-RPX account.
+	# RPX only supports :post, so this cannot simply go to update method (:put)
+	def addrpxauth
+		@user = current_user
+		if @user.save
+			flash[:notice] = "Successfully added RPX authentication for this account."
+			render :action => 'show'
+		else
+			render :action => 'edit'
+		end
+	end
+
+{This is demonstrated in the sample users_controller.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/controllers/users_controller.rb].
+
+You'll note this is almost identical to the "update". The main difference is that it needs to be enabled for :post by RPX. In config/routes.rb:
+
+  map.addrpxauth "addrpxauth", :controller => "users", :action => "addrpxauth", :method => :post
+
+=== 9. There is no 9
+
+That's all there is. To see Authlogic_RPX in action, check out the demonstration Rails application:
+* <b>Live Demonstration Site:</b> [http://rails-authlogic-rpx-sample.heroku.com]
+* <b>Demonstration site source repository:</b> [http://github.com/tardate/rails-authlogic-rpx-sample]
+
+
+== Improving Authlogic_RPX: next steps; how to help
+
+Authlogic_RPX is open source and hosted on {github}[http://github.com/tardate/authlogic_rpx]. Developer's are welcome to fork and play - if you have improvements or bug fixes, just send a request to pull from your fork.
+
+If you have issues or feedback, please log them in the {issues list on github}[http://github.com/tardate/authlogic_rpx/issues]
+
+Some of the improvements currently on the radar:
+* Still figuring out how to write some good automated tests
+* Implement/verify support for RPX "paid" service features of their "Plus" and "Pro" accounts (to date, only tested with free RPX "Basic" account)
+* Add support for proxy/direct authentication (i.e. so you can programmatically "authenticate" as an existing user based on the RPX id)
+
+
+
+== Internals
+
+Some design principles:
+* Attempted to stay as close to binarylogic's "unobtrusive authentication" sensibility in Authlogic design
+* All direct RPX processing is handled in the AuthlogicRpx::Session class (not in the ActiveRecord model)
+* It uses the plug-in architecture introduced in Authlogic v2.0.
+
+
+
+== Kudos and Kopywrite
+
+Thanks to {binarylogic}[http://github.com/binarylogic] for cleaning up authentication in rails by creating Authlogic in the first place and offering it to the community.
+
+The idea of adding RPX support to authlogic is not new. Some early ideas were found in the following projects, although it was decided not to base this implementation on a fork of these, since the approaches varied considerably: 
+*	<b>http://github.com/hunter/authlogic_rpx</b> an initial start, based on authlogic_openid and using rpx_now
+*	<b>http://github.com/gampleman/authlogic_rpx/</b> similar, but including an implementation of the RPX api
+
+authlogic_rpx was created by Paul Gallagher (tardate.com) and released under the MIT license.
