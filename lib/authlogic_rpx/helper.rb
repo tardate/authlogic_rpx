@@ -27,7 +27,7 @@ module AuthlogicRpx
 				options[:link_text], 
 				options[:app_name],
 				u( options[:return_url] + '?' + params ),
-				:unobstrusive=>true
+				:unobtrusive=>true
 				) 
 				# NB: i18n considerations? supports a :language parameter (not tested)
 		end
