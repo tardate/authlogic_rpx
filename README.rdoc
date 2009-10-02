@@ -35,7 +35,7 @@ Three gems are required: authlogic, grosser-rpx_now, and tardate-authlogic_rpx. 
 Currently tested versions:
 * authlogic 2.1.1
 * grosser-rpx_now 0.5.10
-* tardate-authlogic_rpx 1.0.1
+* tardate-authlogic_rpx 1.0.2
 
 
 === 1. Direct gem installation
