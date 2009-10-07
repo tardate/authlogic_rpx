@@ -17,6 +17,7 @@ Key features and capabilities:
 *	<b>Authlogic_RPX issues and feedback:</b> [http://github.com/tardate/authlogic_rpx/issues]
 
 The demonstration Rails application is where you can see Authlogic_RPX in action:
+  
 * <b>Live Demonstration Site:</b> [http://rails-authlogic-rpx-sample.heroku.com]
 * <b>Demonstration site source repository:</b> [http://github.com/tardate/rails-authlogic-rpx-sample]
 
@@ -30,19 +31,19 @@ The demonstration Rails application is where you can see Authlogic_RPX in action
 
 == Installing Authlogic RPX gem
 
-Three gems are required: authlogic, grosser-rpx_now, and tardate-authlogic_rpx. Install these as appropriate to your environment and preferences.
+Three gems are required: authlogic, grosser-rpx_now, and authlogic_rpx. Install these as appropriate to your environment and preferences.
 
 Currently tested versions:
-* authlogic 2.1.1
+* authlogic 2.1.2,2.1.1
 * grosser-rpx_now 0.5.10
-* tardate-authlogic_rpx 1.0.2
+* authlogic_rpx 1.0.3
 
 
 === 1. Direct gem installation
 
   sudo gem install authlogic
   sudo gem install grosser-rpx_now --source http://gems.github.com
-  sudo gem install tardate-authlogic_rpx --source http://gems.github.com
+  sudo gem install authlogic_rpx --source http://gemcutter.org
 
 
 === 2. Using Rails config.gems
@@ -51,7 +52,7 @@ Include in config/environment.rb:
   
   config.gem "authlogic"
   config.gem "grosser-rpx_now", :lib => "rpx_now", :source => 'http://gems.github.com'
-  config.gem "tardate-authlogic_rpx", :lib => "authlogic_rpx", :source => 'http://gems.github.com'
+  config.gem "authlogic_rpx", :source => 'http://gemcutter.org'
 
 Then to install, run from the command line:
 
@@ -64,7 +65,7 @@ Include in RAILS_ROOT/.gems:
   
   authlogic
   grosser-rpx_now --source gems.github.com
-  tardate-authlogic_rpx --source gems.github.com
+  authlogic_rpx --source gemcutter.org
 
 
 == Using Authlogic RPX
@@ -114,10 +115,10 @@ You may need to remove database constraints on other fields if they will be unus
 The user model then needs to be tagged with "acts_as_authentic", and you must add rpx_identifier to the attr_accessible configuration (if you are using it)
 
   class User < ActiveRecord::Base
-  	acts_as_authentic do |c|
+    acts_as_authentic do |c|
       c.my_config_option = my_value # for available options see documentation in: Authlogic::ActsAsAuthentic
     end # block optional
-  	attr_accessible :username, :email, :password, :password_confirmation, :rpx_identifier
+    attr_accessible :username, :email, :password, :password_confirmation, :rpx_identifier
   end
 
 {See the source for the sample user.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user.rb].
@@ -155,9 +156,19 @@ For example, to disable auto-registration and enable extended info:
 
 {See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
 
-=== 3. Add custom user profile mapping (optional)
+=== 3. Add custom user profile mapping during auto-registration (optional)
+
 When users auto-register, profile data from RPX is available to be inserted in the user's record on your site. By default, authlogic_rpx will map the username and email fields.
 
+WARNING: if you are using auto-registration, any fields you map should NOT have unique constraints enforced at the database level.
+Authlogic_rpx will optimistically attempt to save the user record during registration, and violating a unique constraint will cause the authentication/registration to fail.
+
+You can/should enforce any required validations at the model level e.g.
+
+  validates_uniqueness_of   :username, :case_sensitive => false
+  
+This will allow the auto-registration to proceed, and the user can be given a chance to rectify the validation errors on your user profile page.
+			
 If you have other fields you want to map, you can provide your own implementation of the map_rpx_data method in the UserSession model. In that method, you will be updating the "self.attempted_record" object, with information from the "@rpx_data" object. See the {RPX documentation}[https://rpxnow.com/docs#profile_data] to find out about the set of information that is available. 
 
   class UserSession < Authlogic::Session::Base
@@ -166,22 +177,22 @@ If you have other fields you want to map, you can provide your own implementatio
   	
   private
   
-  	# map_rpx_data maps additional fields from the RPX response into the user object
-  	# override this in your session controller to change the field mapping
-  	# see https://rpxnow.com/docs#profile_data for the definition of available attributes
-  	#
-      def map_rpx_data
-		# map core profile data using authlogic indirect column names
-		self.attempted_record.send("#{klass.login_field}=", @rpx_data['profile']['preferredUsername'] ) if attempted_record.send(klass.login_field).blank?
-		self.attempted_record.send("#{klass.email_field}=", @rpx_data['profile']['email'] ) if attempted_record.send(klass.email_field).blank?
-
-		# map some other columns explicityl
-		self.attempted_record.fullname = @rpx_data['profile']['displayName'] if attempted_record.fullname.blank?
-  
-  		if rpx_extended_info?
-  			# map some extended attributes
-  		end
-  	end
+    # map_rpx_data maps additional fields from the RPX response into the user object
+    # override this in your session controller to change the field mapping
+    # see https://rpxnow.com/docs#profile_data for the definition of available attributes
+    #
+    def map_rpx_data
+      # map core profile data using authlogic indirect column names
+      self.attempted_record.send("#{klass.login_field}=", @rpx_data['profile']['preferredUsername'] ) if attempted_record.send(klass.login_field).blank?
+      self.attempted_record.send("#{klass.email_field}=", @rpx_data['profile']['email'] ) if attempted_record.send(klass.email_field).blank?
+      
+      # map some other columns explicitly
+      self.attempted_record.fullname = @rpx_data['profile']['displayName'] if attempted_record.fullname.blank?
+    
+    	if rpx_extended_info?
+    		# map some extended attributes
+    	end
+    end
   	
   end
 
@@ -353,7 +364,7 @@ So how to put a "login" link on your page? Two helper methods are provided:
 
 Each takes an options hash:
 * <tt>link_text:</tt> text to use in the link (only used by rpx_popup)
-* <tt>app_name:</tt> name of the application (will be prepended to RPX domain and used in RPX dialogues)
+* <tt>app_name:</tt> name of the application you set when registering your service at rpxnow.com (will be prepended to RPX domain and used in RPX dialogues)
 * <tt>return_url:</tt> url for the RPX callback (e.g. user_sessions_url)
 * <tt>add_rpx:</tt> Optional. If true, requests RPX callback to add to current session. Else runs normal authentication process (default). See "7. Allow users to "Add RPX" to existing accounts"
 
@@ -412,9 +423,18 @@ If you have issues or feedback, please log them in the {issues list on github}[h
 Some of the improvements currently on the radar:
 * Still figuring out how to write some good automated tests
 * Implement/verify support for RPX "paid" service features of their "Plus" and "Pro" accounts (to date, only tested with free RPX "Basic" account)
-* Add support for proxy/direct authentication (i.e. so you can programmatically "authenticate" as an existing user based on the RPX id)
 
 
+== Note on programmatically grabbing an authenticated session
+
+If you need to programmatically perform proxy authentication as a specific user (e.g. to run a batch process on behalf of the user), authlogic provides the necessary capability and this can be used with RPX-authenticated users too:
+
+  app.get "/" # force Authlogic::Session::Base.controller activation
+  user = User.find(:first)
+  session = UserSession.create(user, true) # skip authentication and log the user in directly, the true means "remember me"
+  session.valid?
+  => true
+ 
 
 == Internals
 
@@ -423,7 +443,23 @@ Some design principles:
 * All direct RPX processing is handled in the AuthlogicRpx::Session class (not in the ActiveRecord model)
 * It uses the plug-in architecture introduced in Authlogic v2.0.
 
+==== building the gem
 
+* increment the version in lib/authlogic_rpx/version.rb
+* update gem version refs in README.rdoc
+* update CHANGELOG.rdoc
+
+  # update manifest file
+  $ rake manifest
+  
+  # update gemspec
+  $ rake build_gemspec
+  
+  # build the gem
+  gem build authlogic_rpx.gemspec
+  
+  # push the gem to gemcutter (e.g. for version 1.0.3)
+  gem push authlogic_rpx-1.0.3.gem
 
 == Kudos and Kopywrite
 

@@ -1,3 +1,8 @@
+== 1.0.3 released 2009-10-07
+
+* added general error handler for session validation to give clean 'failure' when underlying errors encountered (e.g. user model database constraint violation)
+* updated documentation
+
 == 1.0.2 released 2009-09-27
 
 * Fixed issue with rpx_popup that was causing an error on some webkit-based browsers (incl chrome)

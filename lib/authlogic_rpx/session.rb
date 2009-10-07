@@ -67,7 +67,7 @@ module AuthlogicRpx
 					validate :validate_by_rpx, :if => :authenticating_with_rpx?
 				end
 			end
-		  
+      		  
 			# Determines if the authenticated user is also a new registration.
 			# For use in the session controller to help direct the most appropriate action to follow.
 			# 
@@ -159,12 +159,24 @@ module AuthlogicRpx
 						return false
 					end
 				end
-				
+			
+			rescue	
+				errors.add_to_base("There was an error in authentication. Please try again or contact the system administrators for assistance")
+				return false
 			end
 
-			# map_rpx_data maps additional fields from the RPX response into the user object
-			# override this in your session controller to change the field mapping
-			# see https://rpxnow.com/docs#profile_data for the definition of available attributes
+			# map_rpx_data maps additional fields from the RPX response into the user object during auto-registration.
+			# Override this in your session controller to change the field mapping
+			# See https://rpxnow.com/docs#profile_data for the definition of available attributes
+			#
+			# WARNING: if you are using auto-registration, any fields you map should NOT have unique constraints enforced at the database level.
+			# authlogic_rpx will optimistically attempt to save the user record during registration, and 
+			# violating a unique constraint will cause the authentication/registration to fail.
+			#
+			# You can/should enforce any required validations at the model level e.g.
+			#   validates_uniqueness_of   :username, :case_sensitive => false
+			# This will allow the auto-registration to proceed, and the user can be given a chance to rectify the validation errors
+			# on your user profile page.
 			#
 			def map_rpx_data
 				self.attempted_record.send("#{klass.login_field}=", @rpx_data['profile']['preferredUsername'] ) if attempted_record.send(klass.login_field).blank?
