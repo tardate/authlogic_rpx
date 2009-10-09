@@ -107,21 +107,19 @@ module AuthlogicRpx
 				controller.params[:token] && controller.params[:add_rpx]
 			end
 			
-			# the main RPX magic. At this pont, a session is being validated and we know RPX identifier
-			# has been provided. We'll callback to RPX to verify the token, and authenticate the matching 
-			# user. 
-			# If no user is found, and we have auto_register enabled (default) this method will also 
-			# create the user registration stub.
-			#
-			# On return to the controller, you can test for new_registration? and registration_complete?
-			# to determine the most appropriate action
+			# Handles the special case of RPX being added to an existing account. 
+			# At this point, a session has been established as a result of a "save" on the user model (which indirectly triggers user session validation).
+			# We do not directly add the RPX details to the user record here in order to avoid getting
+			# into a recursive dance between the session and user models.
+			# Rather, it uses the trick of adding the necessary RPX information to the session object, 
+			# and the user model will pluck these values out before completing its validation step.
 			#
 			def add_rpx_identifier
-				data = RPXNow.user_data(controller.params[:token])
-				controller.session['added_rpx_identifier'] = data[:identifier] if data
+				data = RPXNow.user_data(controller.params[:token], :extended=> rpx_extended_info? ) {|raw| raw }
+				controller.session['added_rpx_data'] = data if data
 			end
 			
-			# the main RPX magic. At this pont, a session is being validated and we know RPX identifier
+			# the main RPX magic. At this point, a session is being validated and we know RPX identifier
 			# has been provided. We'll callback to RPX to verify the token, and authenticate the matching 
 			# user. 
 			# If no user is found, and we have auto_register enabled (default) this method will also 
@@ -168,6 +166,8 @@ module AuthlogicRpx
 			# map_rpx_data maps additional fields from the RPX response into the user object during auto-registration.
 			# Override this in your session model to change the field mapping
 			# See https://rpxnow.com/docs#profile_data for the definition of available attributes
+			#
+			# In this procedure, you will be writing to fields of the "self.attempted_record" object, pulling data from the @rpx_data object.
 			#
 			# WARNING: if you are using auto-registration, any fields you map should NOT have constraints enforced at the database level.
 			# authlogic_rpx will optimistically attempt to save the user record during registration, and 

@@ -64,15 +64,35 @@ module AuthlogicRpx
 				!using_rpx? && require_password?
 			end
 			
+			# hook for adding RPX identifier to an existing account. This is invoked prior to model validation.
+			# RPX information is plucked from the controller session object (where it was placed by the session model as a result
+			# of the RPX callback)
+			# The minimal action taken is to populate the rpx_identifier field in the user model.
+			#
+			# This procedure chains to the map_added_rpx_data, which may be over-ridden in your project to perform
+			# additional mapping of RPX information to the user model as may be desired.
+			#
 			def adding_rpx_identifier
 				return true unless session_class && session_class.controller
-				new_rpx_id = session_class.controller.session['added_rpx_identifier']	
-				unless new_rpx_id.blank?
-					session_class.controller.session['added_rpx_identifier'] = nil		
-					self.rpx_identifier = new_rpx_id 
+				added_rpx_data = session_class.controller.session['added_rpx_data']	
+				unless added_rpx_data.blank?
+					session_class.controller.session['added_rpx_data'] = nil
+					map_added_rpx_data( added_rpx_data ) 
 				end
 				return true
 			end
+			
+			# map_added_rpx_data maps additional fields from the RPX response into the user object during the "add RPX to existing account" process.
+			# Override this in your user model to perform field mapping as may be desired
+			# See https://rpxnow.com/docs#profile_data for the definition of available attributes
+			#
+			# By default, it only maps the rpx_identifier field.
+			#
+			def map_added_rpx_data( rpx_data )
+			  self.rpx_identifier = rpx_data['profile']['identifier']
+			end
+			
+			
 			
 			# experimental - a feature of RPX paid accounts and not properly developed/tested yet
 			def map_id?
