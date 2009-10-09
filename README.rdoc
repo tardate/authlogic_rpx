@@ -79,7 +79,7 @@ An important capability to be aware of is "auto registration". This means that w
 The main steps for enabling Authlogic RPX: 
 * 1. Enable RPX for your user model
 * 2. Add RPX configuration for the Authlogic session model
-* 3 Add custom user profile mapping (optional)
+* 3. Add custom user profile mapping (optional)
 * 4. Add application controller helpers: current_user, current_user_session
 * 5. Setup the Authlogic session controller
 * 6. Setup the Authlogic user controller
@@ -90,7 +90,9 @@ The main steps for enabling Authlogic RPX:
 === 1. Enable RPX for your user model
 
 The user model requires an additional field called "rpx_identifier". Creat a migration to add this. 
-You may need to remove database constraints on other fields if they will be unused in the RPX case (e.g. crypted_password and password_salt to make password authentication optional)
+You may need to remove database constraints on other fields if they will be unused in the RPX case (e.g. crypted_password and password_salt to make password authentication optional).
+
+If you are using auto-registration, you must also remove any database constraints for fields that will be automatically mapped (see notes in "3. Add custom user profile mapping during auto-registration")
 
   class AddUsersRpxIdentifier < ActiveRecord::Migration
     def self.up
@@ -160,15 +162,6 @@ For example, to disable auto-registration and enable extended info:
 
 When users auto-register, profile data from RPX is available to be inserted in the user's record on your site. By default, authlogic_rpx will map the username and email fields.
 
-WARNING: if you are using auto-registration, any fields you map should NOT have unique constraints enforced at the database level.
-Authlogic_rpx will optimistically attempt to save the user record during registration, and violating a unique constraint will cause the authentication/registration to fail.
-
-You can/should enforce any required validations at the model level e.g.
-
-  validates_uniqueness_of   :username, :case_sensitive => false
-  
-This will allow the auto-registration to proceed, and the user can be given a chance to rectify the validation errors on your user profile page.
-			
 If you have other fields you want to map, you can provide your own implementation of the map_rpx_data method in the UserSession model. In that method, you will be updating the "self.attempted_record" object, with information from the "@rpx_data" object. See the {RPX documentation}[https://rpxnow.com/docs#profile_data] to find out about the set of information that is available. 
 
   class UserSession < Authlogic::Session::Base
@@ -195,6 +188,22 @@ If you have other fields you want to map, you can provide your own implementatio
     end
   	
   end
+
+WARNING: if you are using auto-registration, any fields you map should NOT have constraints enforced at the database level.
+Authlogic_rpx will optimistically attempt to save the user record during registration, and violating a database constraint will cause the authentication/registration to fail.
+
+You can/should enforce any required validations at the model level e.g.
+
+  validates_uniqueness_of   :username, :case_sensitive => false
+  
+This will allow the auto-registration to proceed, and the user can be given a chance to rectify the validation errors on your user profile page.
+
+If it is not acceptable in your application to have user records created with potential validation errors in auto-populated fields, you will need to override map_rpx_data and implement whatever special handling makes sense in your case. For example:
+  
+* directly check for uniqueness and other validation requirements
+* automatically "uniquify" certain fields like username
+* save conflicting profile information to "pending user review" columns or a seperate table
+
 
 === 4. Add application controller helpers: current_user, current_user_session
 
