@@ -14,7 +14,7 @@ Echoe.new("authlogic_rpx") do |p|
   p.development_dependencies = []
 
   p.author = "Paul Gallagher / tardate"
-  p.email  = 'gallagher.paul@gmail.com'
+  p.email  = "gallagher.paul@gmail.com"
 
-  p.extra_deps = %w(authlogic >= 0)
+  p.install_message = ""
 end

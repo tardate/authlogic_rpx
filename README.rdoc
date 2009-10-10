@@ -36,7 +36,7 @@ Three gems are required: authlogic, grosser-rpx_now, and authlogic_rpx. Install 
 Currently tested versions:
 * authlogic 2.1.2,2.1.1
 * grosser-rpx_now 0.5.10
-* authlogic_rpx 1.0.3
+* authlogic_rpx 1.0.4
 
 
 === 1. Direct gem installation
@@ -460,15 +460,13 @@ Some design principles:
 
   # update manifest file
   $ rake manifest
-  
   # update gemspec
   $ rake build_gemspec
-  
   # build the gem
   gem build authlogic_rpx.gemspec
-  
   # push the gem to gemcutter (e.g. for version 1.0.3)
   gem push authlogic_rpx-1.0.3.gem
+
 
 == Kudos and Kopywrite
 
