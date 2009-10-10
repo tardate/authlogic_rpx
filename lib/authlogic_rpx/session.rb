@@ -62,7 +62,6 @@ module AuthlogicRpx
 				klass.class_eval do
 					attr_accessor :new_registration
 					attr_accessor :rpx_identifier
-					attr_accessor :rpx_data
 					after_persisting :add_rpx_identifier, :if => :adding_rpx_identifier?
 					validate :validate_by_rpx, :if => :authenticating_with_rpx?
 				end
@@ -156,11 +155,10 @@ module AuthlogicRpx
 						errors.add_to_base("We did not find any accounts with that login. Enter your details and create an account.")
 						return false
 					end
+				else
+				  map_rpx_data_each_login
 				end
 			
-			rescue	
-				errors.add_to_base("There was an error in authentication. Please try again or contact the system administrators for assistance")
-				return false
 			end
 
 			# map_rpx_data maps additional fields from the RPX response into the user object during auto-registration.
@@ -187,6 +185,19 @@ module AuthlogicRpx
 			def map_rpx_data
 				self.attempted_record.send("#{klass.login_field}=", @rpx_data['profile']['preferredUsername'] ) if attempted_record.send(klass.login_field).blank?
 				self.attempted_record.send("#{klass.email_field}=", @rpx_data['profile']['email'] ) if attempted_record.send(klass.email_field).blank?
+			end
+
+			# map_rpx_data_each_login provides a hook to allow you to map RPX profile information every time the user
+			# logs in.
+			# By default, nothing is mapped. 
+			#
+			# This would mainly be used to update relatively volatile information that you are maintaining in the user model (such as profile image url)
+			#
+			# In this procedure, you will be writing to fields of the "self.attempted_record" object, pulling data from the @rpx_data object.
+			#
+			#
+			def map_rpx_data_each_login
+
 			end
 	
 		end
