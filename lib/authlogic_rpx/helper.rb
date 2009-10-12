@@ -19,6 +19,7 @@ module AuthlogicRpx
 		#   * <tt>app_name:</tt> name of the application (will be prepended to RPX domain and used in RPX dialogues)
 		#   * <tt>return_url:</tt> url for the RPX callback (e.g. user_sessions_url)
 		#   * <tt>add_rpx:</tt> if true, requests RPX callback to add to current session. Else runs normal authentication process (default)
+		#   * <tt>unobtrusive:</tt> true/false; sets javascript style for link. Default: true
 		def rpx_popup(options = {})
 			params = (
 				{ :authenticity_token => form_authenticity_token, :add_rpx => options[:add_rpx] }.collect { |n| "#{n[0]}=#{ u(n[1]) }" if n[1] }
@@ -27,7 +28,7 @@ module AuthlogicRpx
 				options[:link_text], 
 				options[:app_name],
 				u( options[:return_url] + '?' + params ),
-				:unobtrusive=>true
+				:unobtrusive=> ( options[:unobtrusive] ? options[:unobtrusive] : true )
 				) 
 				# NB: i18n considerations? supports a :language parameter (not tested)
 		end
