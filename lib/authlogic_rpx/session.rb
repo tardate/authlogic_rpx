@@ -82,10 +82,14 @@ module AuthlogicRpx
 			end
 
 		private
+		  # Tests if current request is for RPX authentication
+		  #
 			def authenticating_with_rpx?
 				controller.params[:token] && !controller.params[:add_rpx]
 			end
 
+      # hook instance finder method to class
+      #
 			def find_by_rpx_identifier_method
 				self.class.find_by_rpx_identifier_method
 			end
@@ -102,6 +106,8 @@ module AuthlogicRpx
 				self.class.rpx_extended_info_value
 			end
 
+      # Tests if current request is the special case of adding RPX to an existing account
+      #
 			def adding_rpx_identifier?
 				controller.params[:token] && controller.params[:add_rpx]
 			end

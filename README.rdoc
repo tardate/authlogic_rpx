@@ -35,14 +35,14 @@ Three gems are required: authlogic, grosser-rpx_now, and authlogic_rpx. Install 
 
 Currently tested versions:
 * authlogic 2.1.2,2.1.1
-* grosser-rpx_now 0.5.10
+* rpx_now 0.6.6
 * authlogic_rpx 1.0.4
 
 
 === 1. Direct gem installation
 
   sudo gem install authlogic
-  sudo gem install grosser-rpx_now --source http://gems.github.com
+  sudo gem install rpx_now --source http://gemcutter.org
   sudo gem install authlogic_rpx --source http://gemcutter.org
 
 
@@ -50,9 +50,9 @@ Currently tested versions:
 
 Include in config/environment.rb:
   
-  config.gem "authlogic"
-  config.gem "grosser-rpx_now", :lib => "rpx_now", :source => 'http://gems.github.com'
-  config.gem "authlogic_rpx", :source => 'http://gemcutter.org'
+  config.gem 'authlogic', :version => '>= 2.1.1'
+  config.gem 'rpx_now', :version => '>= 0.6.6', :source => 'http://gemcutter.org'
+  config.gem 'authlogic_rpx', :version => '>= 1.0.4', :source => 'http://gemcutter.org'
 
 Then to install, run from the command line:
 
@@ -63,9 +63,9 @@ Then to install, run from the command line:
 
 Include in RAILS_ROOT/.gems:
   
-  authlogic
-  grosser-rpx_now --source gems.github.com
-  authlogic_rpx --source gemcutter.org
+  authlogic --version '>= 2.1.1'
+  rpx_now --version '>= 0.6.6' --source gemcutter.org
+  authlogic_rpx --version '>= 1.0.4' --source gemcutter.org
 
 
 == Using Authlogic RPX
@@ -376,6 +376,7 @@ Each takes an options hash:
 * <tt>app_name:</tt> name of the application you set when registering your service at rpxnow.com (will be prepended to RPX domain and used in RPX dialogues)
 * <tt>return_url:</tt> url for the RPX callback (e.g. user_sessions_url)
 * <tt>add_rpx:</tt> Optional. If true, requests RPX callback to add to current session. Else runs normal authentication process (default). See "7. Allow users to "Add RPX" to existing accounts"
+* <tt>unobtrusive:</tt> true/false; sets javascript style for link. unobtrusive=true links directly to rpxnow site, whereas unobtrusive=false does a javascript pop-over. Default: true (only used by rpx_popup)
 
 For example, to insert a login link in a navigation bar is as simple as this:
 
@@ -385,7 +386,7 @@ For example, to insert a login link in a navigation bar is as simple as this:
 				&lt;%= link_to "Profile", user_path(:current) %&gt; |
 				&lt;%= link_to "Sign out", signout_path %&gt;
 			&lt;% else %&gt;
-				&lt;%= rpx_popup( :link_text => "Register/Sign in with RPX..", :app_name => "rails-authlogic-rpx-sample", :return_url => user_sessions_url ) %>&gt;
+				&lt;%= rpx_popup( :link_text => "Register/Sign in with RPX..", :app_name => "rails-authlogic-rpx-sample", :return_url => user_sessions_url, :unobtrusive => false ) %>&gt;
 			&lt;% end %&gt;
 		&lt;/div&gt;
 
