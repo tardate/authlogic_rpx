@@ -10,7 +10,7 @@ Echoe.new("authlogic_rpx") do |p|
   p.summary = "Authlogic plug-in for RPX support"
   p.description = "Authlogic extension/plugin that provides RPX (rpxnow.com) authentication support"
 
-  p.runtime_dependencies = ["authlogic >=2.1.1", "grosser-rpx_now >=0.5.10" ]
+  p.runtime_dependencies = ["authlogic >=2.1.1", "rpx_now >=0.6.6" ]
   p.development_dependencies = []
 
   p.author = "Paul Gallagher / tardate"
