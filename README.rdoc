@@ -417,6 +417,11 @@ You'll note this is almost identical to the "update". The main difference is tha
 
   map.addrpxauth "addrpxauth", :controller => "users", :action => "addrpxauth", :method => :post
 
+To make an "Add RPX authentication for this account.." link, use rpx_popup as for normal RPX login, but set the return_url to the "addrpxauth" callback you have provided, and set the option :add_rpx to tru:
+      
+  &lt;%= rpx_popup( :link_text =&gt; "Add RPX authentication for this account..", :app_name =&gt; RPX_APP_NAME, :return_url =&gt; addrpxauth_url, :add_rpx =&gt; true, :unobtrusive =&gt; false ) %&gt; 
+
+
 === 9. There is no 9
 
 That's all there is. To see Authlogic_RPX in action, check out the demonstration Rails application:

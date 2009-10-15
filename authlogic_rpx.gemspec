@@ -26,13 +26,13 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<authlogic>, [">= 2.1.1"])
-      s.add_runtime_dependency(%q<grosser-rpx_now>, [">= 0.5.10"])
+      s.add_runtime_dependency(%q<rpx_now>, [">= 0.6.6"])
     else
       s.add_dependency(%q<authlogic>, [">= 2.1.1"])
-      s.add_dependency(%q<grosser-rpx_now>, [">= 0.5.10"])
+      s.add_dependency(%q<rpx_now>, [">= 0.6.6"])
     end
   else
     s.add_dependency(%q<authlogic>, [">= 2.1.1"])
-    s.add_dependency(%q<grosser-rpx_now>, [">= 0.5.10"])
+    s.add_dependency(%q<rpx_now>, [">= 0.6.6"])
   end
 end

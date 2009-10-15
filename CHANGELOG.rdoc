@@ -1,7 +1,9 @@
 == 1.0.4 released 2009-10-10
 
 * added new hooks for profile mapping (Session.map_rpx_data_each_login, ActsAsAuthentic.map_added_rpx_data) based on suggestion by trosser (github issue #5)
-* updated documentation
+* now supporting obtrusive (javascript pop-over) and unobtrusive (link) RPX pop-up sign-in forms. See rpx_popup method. (github issue #4)
+* updated support for rpx_now gem version 0.6.6
+* documentation updates
 
 == 1.0.3 released 2009-10-07
 
