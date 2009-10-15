@@ -158,7 +158,17 @@ For example, to disable auto-registration and enable extended info:
 
 {See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
 
-=== 3. Add custom user profile mapping during auto-registration (optional)
+=== 3. Add custom user profile mapping (optional)
+
+Authlogic_rpx provides three hooks for mapping information from the RPX profile into your application's user model:
+  
+* map_rpx_data: user profile mapping during auto-registration
+* map_rpx_data_each_login: user profile mapping during login
+* map_added_rpx_data: user profile mapping when adding RPX to an existing account
+ 
+See https://rpxnow.com/docs#profile_data for the definition of available attributes in the RPX profile.
+
+=== 3a. map_rpx_data: user profile mapping during auto-registration
 
 When users auto-register, profile data from RPX is available to be inserted in the user's record on your site. By default, authlogic_rpx will map the username and email fields.
 
@@ -189,6 +199,8 @@ If you have other fields you want to map, you can provide your own implementatio
   	
   end
 
+{See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
+
 WARNING: if you are using auto-registration, any fields you map should NOT have constraints enforced at the database level.
 Authlogic_rpx will optimistically attempt to save the user record during registration, and violating a database constraint will cause the authentication/registration to fail.
 
@@ -203,6 +215,44 @@ If it is not acceptable in your application to have user records created with po
 * directly check for uniqueness and other validation requirements
 * automatically "uniquify" certain fields like username
 * save conflicting profile information to "pending user review" columns or a seperate table
+
+
+==== 3b. map_rpx_data_each_login: user profile mapping during login
+
+map_rpx_data_each_login provides a hook to allow you to map RPX profile information every time the user logs in.
+
+By default, nothing is mapped. If you have other fields you want to map, you can provide your own implementation of the map_rpx_data_each_login method in the UserSession model.
+
+This would mainly be used to update relatively volatile information that you are maintaining in the user model (such as profile image url)
+
+In the map_rpx_data_each_login procedure, you will be writing to fields of the "self.attempted_record" object, pulling data from the @rpx_data object. For example:
+			
+	def map_rpx_data_each_login
+		# we'll always update photo_url
+		self.attempted_record.photo_url = @rpx_data['profile']['photo']
+	end
+
+{See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
+
+
+==== 3c. map_added_rpx_data: user profile mapping when adding RPX to an existing account
+
+map_added_rpx_data maps additional fields from the RPX response into the user object during the "add RPX to existing account" process.
+
+By default, it only maps the rpx_identifier field. If you have other fields you want to map, you can provide your own implementation of the map_added_rpx_data method in the User model (NOT UserSession, unlike for map_rpx_data and map_rpx_data_each_login).
+
+NB: If you override this method, you will be responsible for also mapping the rpx_identifier.
+
+In the map_added_rpx_data procedure, you will be writing to fields of the "self" object, pulling data from the rpx_data parameter. For example:
+
+	def map_added_rpx_data( rpx_data )
+		self.rpx_identifier = rpx_data['profile']['identifier']
+
+		# map some additional fields, e.g. photo_url
+		self.photo_url = rpx_data['profile']['photo'] if photo_url.blank?
+	end
+
+{See the source for the sample user.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user.rb].
 
 
 === 4. Add application controller helpers: current_user, current_user_session
