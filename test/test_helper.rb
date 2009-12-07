@@ -34,8 +34,8 @@ end
 
 require "active_record/fixtures"
 require "openid"
-require File.dirname(__FILE__) + "/../../authlogic/lib/authlogic"
-require File.dirname(__FILE__) + "/../../authlogic/lib/authlogic/test_case"
+require "authlogic"
+require "authlogic/test_case"
 require File.dirname(__FILE__) + "/libs/rails_trickery"
 require File.dirname(__FILE__) + '/libs/user'
 require File.dirname(__FILE__) + '/libs/user_session'
