@@ -425,7 +425,7 @@ Each takes an options hash:
 * <tt>link_text:</tt> text to use in the link (only used by rpx_popup)
 * <tt>app_name:</tt> name of the application you set when registering your service at rpxnow.com (will be prepended to RPX domain and used in RPX dialogues)
 * <tt>return_url:</tt> url for the RPX callback (e.g. user_sessions_url)
-* <tt>add_rpx:</tt> Optional. If true, requests RPX callback to add to current session. Else runs normal authentication process (default). See "7. Allow users to "Add RPX" to existing accounts"
+* <tt>add_rpx:</tt> Optional. If true, requests RPX callback to add to current session. Else runs normal authentication process (default). See "8. Allow users to "Add RPX" to existing accounts"
 * <tt>unobtrusive:</tt> true/false; sets javascript style for link. unobtrusive=true links directly to rpxnow site, whereas unobtrusive=false does a javascript pop-over. Default: true (only used by rpx_popup)
 
 For example, to insert a login link in a navigation bar is as simple as this:
