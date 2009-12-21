@@ -32,7 +32,8 @@ module AuthlogicRpx
 			# Set up some simple validations
 			def self.included(klass)
 				klass.class_eval do
-					validates_uniqueness_of :rpx_identifier, :scope => validations_scope, :if => :using_rpx?
+					has_many :rpx_identifiers
+
 					validates_length_of_password_field_options validates_length_of_password_field_options.merge(:if => :validate_password_with_rpx?)
 					validates_confirmation_of_password_field_options validates_confirmation_of_password_field_options.merge(:if => :validate_password_with_rpx?)
 					validates_length_of_password_confirmation_field_options validates_length_of_password_confirmation_field_options.merge(:if => :validate_password_with_rpx?)
@@ -67,7 +68,7 @@ module AuthlogicRpx
 			# hook for adding RPX identifier to an existing account. This is invoked prior to model validation.
 			# RPX information is plucked from the controller session object (where it was placed by the session model as a result
 			# of the RPX callback)
-			# The minimal action taken is to populate the rpx_identifier field in the user model.
+			# The minimal action taken is to add an RPXIdentifier object to the user.
 			#
 			# This procedure chains to the map_added_rpx_data, which may be over-ridden in your project to perform
 			# additional mapping of RPX information to the user model as may be desired.
@@ -86,10 +87,10 @@ module AuthlogicRpx
 			# Override this in your user model to perform field mapping as may be desired
 			# See https://rpxnow.com/docs#profile_data for the definition of available attributes
 			#
-			# By default, it only maps the rpx_identifier field.
+			# By default, it only creates a new RPXIdentifier for the user.
 			#
 			def map_added_rpx_data( rpx_data )
-			  self.rpx_identifier = rpx_data['profile']['identifier']
+			  self.rpx_identifiers.create( :identifier => rpx_data['profile']['identifier'] )
 			end
 			
 			

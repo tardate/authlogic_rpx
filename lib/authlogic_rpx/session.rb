@@ -146,17 +146,18 @@ module AuthlogicRpx
 					return false
 				end		
 				
-				self.attempted_record = klass.send(find_by_rpx_identifier_method, rpx_id)
+				self.attempted_record = klass.send(find_by_rpx_identifier_method, rpx_id) # TODO this needs to be changed so that the user is instead found through RPXIdentifier.find_by_identifier(rpx_id). I don't have all the layers clear in my head yet so I'll let tardate take a crack at it first. -jjb
 				
 				# so what do we do if we can't find an existing user matching the RPX authentication..
 				if !attempted_record
 					if auto_register?   
-						self.attempted_record = klass.new( :rpx_identifier=> rpx_id )     
+						self.attempted_record = klass.new()
 						map_rpx_data
 						# save the new user record - without session maintenance else we get caught in a self-referential hell,
 						# since both session and user objects invoke each other upon save
 						self.new_registration=true
 						self.attempted_record.save_without_session_maintenance
+						self.attempted_record.rpx_identifiers.create( :identifier => rpx_id )
 					else
 						errors.add_to_base("We did not find any accounts with that login. Enter your details and create an account.")
 						return false

@@ -89,23 +89,30 @@ The main steps for enabling Authlogic RPX:
 
 === 1. Enable RPX for your user model
 
-The user model requires an additional field called "rpx_identifier". Creat a migration to add this. 
+The user model will have a has_many relationship with a new model, called RPXIdentifier. Create a migration to add this.
+
 You may need to remove database constraints on other fields if they will be unused in the RPX case (e.g. crypted_password and password_salt to make password authentication optional).
 
 If you are using auto-registration, you must also remove any database constraints for fields that will be automatically mapped (see notes in "3. Add custom user profile mapping during auto-registration")
 
   class AddUsersRpxIdentifier < ActiveRecord::Migration
     def self.up
-      add_column :users, :rpx_identifier, :string
-      add_index :users, :rpx_identifier
+      create_table :rpx_identifiers do |t|
+         t.string  :identifier
+         t.integer :user_id
+
+         t.index   :identifier, :user_id
+         t.index   :user_id, :identifier
+
+         t.timestamps
+      end
 
       change_column :users, :crypted_password, :string, :default => nil, :null => true
-      change_column :users, :password_salt, :string, :default => nil, :null => true
-      
+      change_column :users, :password_salt, :string, :default => nil, :null => true      
     end
 
     def self.down
-      remove_column :users, :rpx_identifier
+      drop_table :rpx_identifiers
 
       [:crypted_password, :password_salt].each do |field|
         User.all(:conditions => "#{field} is NULL").each { |user| user.update_attribute(field, "") if user.send(field).nil? }
@@ -114,13 +121,23 @@ If you are using auto-registration, you must also remove any database constraint
     end
   end
 
-The user model then needs to be tagged with "acts_as_authentic", and you must add rpx_identifier to the attr_accessible configuration (if you are using it)
+The RPXIdentifier model should look like this
+
+  class RPXIdentifier < ActiveRecord::Base
+    belongs_to :user
+    validates_presence_of :identifier
+    validates_presence_of :user_id
+  end
+
+
+The user model then needs to be tagged with "acts_as_authentic", and you must add the relationship with RPXIdentifiers.
 
   class User < ActiveRecord::Base
     acts_as_authentic do |c|
       c.my_config_option = my_value # for available options see documentation in: Authlogic::ActsAsAuthentic
     end # block optional
-    attr_accessible :username, :email, :password, :password_confirmation, :rpx_identifier
+
+    has_many :rpx_identifiers
   end
 
 {See the source for the sample user.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user.rb].
@@ -246,7 +263,7 @@ NB: If you override this method, you will be responsible for also mapping the rp
 In the map_added_rpx_data procedure, you will be writing to fields of the "self" object, pulling data from the rpx_data parameter. For example:
 
 	def map_added_rpx_data( rpx_data )
-		self.rpx_identifier = rpx_data['profile']['identifier']
+		self.rpx_identifiers.create( :identifier => rpx_data['profile']['identifier'] )
 
 		# map some additional fields, e.g. photo_url
 		self.photo_url = rpx_data['profile']['photo'] if photo_url.blank?
@@ -425,7 +442,7 @@ Each takes an options hash:
 * <tt>link_text:</tt> text to use in the link (only used by rpx_popup)
 * <tt>app_name:</tt> name of the application you set when registering your service at rpxnow.com (will be prepended to RPX domain and used in RPX dialogues)
 * <tt>return_url:</tt> url for the RPX callback (e.g. user_sessions_url)
-* <tt>add_rpx:</tt> Optional. If true, requests RPX callback to add to current session. Else runs normal authentication process (default). See "8. Allow users to "Add RPX" to existing accounts"
+* <tt>add_rpx:</tt> Optional. If true, requests RPX callback to add to current session. Else runs normal authentication process (default). See "7. Allow users to "Add RPX" to existing accounts"
 * <tt>unobtrusive:</tt> true/false; sets javascript style for link. unobtrusive=true links directly to rpxnow site, whereas unobtrusive=false does a javascript pop-over. Default: true (only used by rpx_popup)
 
 For example, to insert a login link in a navigation bar is as simple as this:
