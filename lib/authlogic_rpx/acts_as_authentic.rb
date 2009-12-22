@@ -32,7 +32,7 @@ module AuthlogicRpx
 			# Set up some simple validations
 			def self.included(klass)
 				klass.class_eval do
-					has_many :rpx_identifiers
+					has_many :rpx_identifiers, :class_name => 'RPXIdentifier'
 
 					validates_length_of_password_field_options validates_length_of_password_field_options.merge(:if => :validate_password_with_rpx?)
 					validates_confirmation_of_password_field_options validates_confirmation_of_password_field_options.merge(:if => :validate_password_with_rpx?)
@@ -51,7 +51,7 @@ module AuthlogicRpx
 
 			# test if account it using RPX authentication
 			def using_rpx?
-				!rpx_identifier.blank?
+				!rpx_identifiers.empty?
 			end
 
 			# test if account it using normal password authentication
@@ -62,7 +62,11 @@ module AuthlogicRpx
 		private
 			
 			def validate_password_with_rpx?
-				!using_rpx? && require_password?
+				if @creating_new_record_from_rpx
+					false
+				else
+					!using_rpx? && require_password?
+				end
 			end
 			
 			# hook for adding RPX identifier to an existing account. This is invoked prior to model validation.

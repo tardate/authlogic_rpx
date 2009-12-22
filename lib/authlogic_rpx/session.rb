@@ -10,11 +10,23 @@ module AuthlogicRpx
 		end
 		
 		module Config
-		  
-			def find_by_rpx_identifier_method(value = nil)
-				rw_config(:find_by_rpx_identifier_method, value, :find_by_rpx_identifier)
-			end
-			alias_method :find_by_rpx_identifier_method=, :find_by_rpx_identifier_method
+
+			# NOTE: this is the one obvious piece of code where I could not determing how to
+			#       convert it to use the relationship instead of the attribute. This is because
+			#       I don't really understand what this code achieves. rw_config is a method provided
+			#       by authlogic, and is undocumented. I think looking at it was the last thing
+			#       I did before calling it a night last night.
+			#
+			#       Note that neither find_by_rpx_identifier_method and find_by_rpx_identifier
+			#       are used anywhere in the authlogic_rpx codebase. So, authlogic must somehow
+			#       magicall know they exist, and use them appropriately.
+			#
+			#       See also line 103  -jjb
+			#
+			# def find_by_rpx_identifier_method(value = nil)
+			#   rw_config(:find_by_rpx_identifier_method, value, :find_by_rpx_identifier)
+			# end
+			# alias_method :find_by_rpx_identifier_method=, :find_by_rpx_identifier_method
 
 			# Auto Register is enabled by default. 
 			# Add this in your Session object if you need to disable auto-registration via rpx
@@ -88,11 +100,11 @@ module AuthlogicRpx
 				controller.params[:token] && !controller.params[:add_rpx]
 			end
 
-      # hook instance finder method to class
-      #
-			def find_by_rpx_identifier_method
-				self.class.find_by_rpx_identifier_method
-			end
+			#       # hook instance finder method to class
+			#       #
+			# def find_by_rpx_identifier_method
+			#   self.class.find_by_rpx_identifier_method
+			# end
 
 			# Tests if auto_registration is enabled (on by default)
 			#
@@ -146,16 +158,21 @@ module AuthlogicRpx
 					return false
 				end		
 				
-				self.attempted_record = klass.send(find_by_rpx_identifier_method, rpx_id) # TODO this needs to be changed so that the user is instead found through RPXIdentifier.find_by_identifier(rpx_id). I don't have all the layers clear in my head yet so I'll let tardate take a crack at it first. -jjb
-				
+				self.attempted_record =
+					if RPXIdentifier.find_by_identifier(rpx_id)
+						RPXIdentifier.find_by_identifier(rpx_id).user
+					else
+						nil
+					end
 				# so what do we do if we can't find an existing user matching the RPX authentication..
-				if !attempted_record
+				if !attempted_record # why is this not self.attempted_record ? -jjb
 					if auto_register?   
 						self.attempted_record = klass.new()
 						map_rpx_data
 						# save the new user record - without session maintenance else we get caught in a self-referential hell,
 						# since both session and user objects invoke each other upon save
 						self.new_registration=true
+						self.attempted_record.creating_new_record_from_rpx=true
 						self.attempted_record.save_without_session_maintenance
 						self.attempted_record.rpx_identifiers.create( :identifier => rpx_id )
 					else

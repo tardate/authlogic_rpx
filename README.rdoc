@@ -89,7 +89,7 @@ The main steps for enabling Authlogic RPX:
 
 === 1. Enable RPX for your user model
 
-The user model will have a has_many relationship with a new model, called RPXIdentifier. Create a migration to add this.
+The user model will have a has_many relationship with a new model, called RPXIdentifier. Create a migration which creates a table for this model.
 
 You may need to remove database constraints on other fields if they will be unused in the RPX case (e.g. crypted_password and password_salt to make password authentication optional).
 
@@ -130,14 +130,15 @@ The RPXIdentifier model should look like this
   end
 
 
-The user model then needs to be tagged with "acts_as_authentic", and you must add the relationship with RPXIdentifiers.
+The user model then needs to be tagged with "acts_as_authentic". authlogic_rpx automatically adds to the user model the relationship with RPXIdentifiers.
 
   class User < ActiveRecord::Base
     acts_as_authentic do |c|
       c.my_config_option = my_value # for available options see documentation in: Authlogic::ActsAsAuthentic
     end # block optional
 
-    has_many :rpx_identifiers
+    # not needed -- this relationship is automatically added by authlogic_rpx
+    # has_many :rpx_identifiers, :class_name => 'RPXIdentifier'
   end
 
 {See the source for the sample user.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user.rb].
