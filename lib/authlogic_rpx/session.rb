@@ -157,14 +157,13 @@ module AuthlogicRpx
 						self.attempted_record = klass.new()
 						map_rpx_data
 						
-						# There is no need to save the user record here explicetly since
-						# it will be automatically saved after the session validation.
-						# Previously, save_without_session_validation could fail on
-						# vaildiation errors but forcing it (with `false` parameter)
-						# would produce other errors
+						# save the new user record - without session maintenance else we
+						# get caught in a self-referential hell, since both session and
+						# user objects invoke each other upon save
 						self.new_registration = true
 						self.attempted_record.creating_new_record_from_rpx = true
 						self.attempted_record.rpx_identifiers.build(:identifier => rpx_id)
+						self.attempted_record.save_without_session_maintenance
 					else
 						errors.add_to_base("We did not find any accounts with that login. Enter your details and create an account.")
 						return false
