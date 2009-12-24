@@ -24,7 +24,15 @@ module AuthlogicRpx
 				rw_config(:map_id, value, false)
 			end
 			alias_method :map_id=, :map_id
-
+			
+			# Name of this method is defined in find_by_rpx_identifier_method
+			# method in session.rb
+			def find_by_rpx_identifier(id)
+				identifier = RPXIdentifier.find_by_identifier(id)
+				return nil if identifier.nil?
+				identifier.user
+			end
+			
 		end
 		
 		module Methods
