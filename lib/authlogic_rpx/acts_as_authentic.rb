@@ -7,10 +7,10 @@ module AuthlogicRpx
 		# Adds in the neccesary modules for acts_as_authentic to include and also disabled password validation if
 		# RPX is being used.
 		def self.included(klass)
-		  klass.class_eval do
-			extend Config
-			add_acts_as_authentic_module(Methods, :prepend)
-		  end
+			klass.class_eval do
+				extend Config
+				add_acts_as_authentic_module(Methods, :prepend)
+			end
 		end
 
 		module Config
@@ -39,6 +39,7 @@ module AuthlogicRpx
 					validates_length_of_password_confirmation_field_options validates_length_of_password_confirmation_field_options.merge(:if => :validate_password_with_rpx?)
 					before_validation :adding_rpx_identifier
 					after_create :map_rpx_identifier
+					attr_writer :creating_new_record_from_rpx
 				end
 			end
 
@@ -96,8 +97,6 @@ module AuthlogicRpx
 			def map_added_rpx_data( rpx_data )
 			  self.rpx_identifiers.create( :identifier => rpx_data['profile']['identifier'] )
 			end
-			
-			
 			
 			# experimental - a feature of RPX paid accounts and not properly developed/tested yet
 			def map_id?
