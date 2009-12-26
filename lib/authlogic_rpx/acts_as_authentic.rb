@@ -40,7 +40,7 @@ module AuthlogicRpx
 			# Set up some simple validations
 			def self.included(klass)
 				klass.class_eval do
-					has_many :rpx_identifiers, :class_name => 'RPXIdentifier'
+					has_many :rpx_identifiers, :class_name => 'RPXIdentifier', :dependent => :destroy
 
 					validates_length_of_password_field_options validates_length_of_password_field_options.merge(:if => :validate_password_with_rpx?)
 					validates_confirmation_of_password_field_options validates_confirmation_of_password_field_options.merge(:if => :validate_password_with_rpx?)
@@ -103,7 +103,9 @@ module AuthlogicRpx
 			# By default, it only creates a new RPXIdentifier for the user.
 			#
 			def map_added_rpx_data( rpx_data )
-			  self.rpx_identifiers.create( :identifier => rpx_data['profile']['identifier'] )
+				unless self.rpx_identifiers.find_by_identifier( rpx_data['profile']['identifier'] )
+					self.rpx_identifiers.create( :identifier => rpx_data['profile']['identifier'] )
+				end
 			end
 			
 			# experimental - a feature of RPX paid accounts and not properly developed/tested yet
