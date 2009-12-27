@@ -103,6 +103,9 @@ module AuthlogicRpx
 				added_rpx_data = session_class.controller.session['added_rpx_data']	
 				unless added_rpx_data.blank?
 					session_class.controller.session['added_rpx_data'] = nil
+					unless self.rpx_identifiers.find_by_identifier( added_rpx_data['profile']['identifier'] )
+					    self.rpx_identifiers.create( :identifier => added_rpx_data['profile']['identifier'], :provider_name => added_rpx_data['profile']['providerName'] )
+				  end
 					map_added_rpx_data( added_rpx_data ) 
 				end
 				return true
@@ -112,12 +115,20 @@ module AuthlogicRpx
 			# Override this in your user model to perform field mapping as may be desired
 			# See https://rpxnow.com/docs#profile_data for the definition of available attributes
 			#
-			# By default, it only creates a new RPXIdentifier for the user.
+			# "self" at this point is the user model. Map details as appropriate from the rpx_data structure provided.
 			#
 			def map_added_rpx_data( rpx_data )
-				unless self.rpx_identifiers.find_by_identifier( rpx_data['profile']['identifier'] )
-					self.rpx_identifiers.create( :identifier => rpx_data['profile']['identifier'] )
-				end
+
+			end
+			
+			# before_merge_rpx_data provides a hook for application developers to perform data migration prior to the merging of user accounts.
+			# This method is called just before authlogic_rpx merges theuser registration for 'from_user' into 'to_user'
+			# Authlogic_RPX is responsible for merging registration data.
+			#
+			# By default, it does not merge any other details (e.g. application data ownership)
+			#
+			def before_merge_rpx_data( from_user, to_user )
+			
 			end
 			
 			# experimental - a feature of RPX paid accounts and not properly developed/tested yet
