@@ -114,12 +114,10 @@ module AuthlogicRpx
 					  another_user = self.class.find_by_rpx_identifier( rpx_id )
 					  if another_user
 					    # another user already has this id registered
+					    # merge all IDs from another_user to self, with application callbacks before/after
 					    before_merge_rpx_data( another_user, self )
-					    # now merge all IDs from another_user to self 
-					    another_user.rpx_identifiers.each do |identifier|
-					      self.rpx_identifiers << identifier
-					    end
-					    # TODO: delete/disable 'another_user' account?
+				      self.rpx_identifiers << another_user.rpx_identifiers
+				      after_merge_rpx_data( another_user, self )
 					  else
 					    self.rpx_identifiers.create( :identifier => rpx_id, :provider_name => rpx_provider_name )
 					  end
@@ -149,6 +147,15 @@ module AuthlogicRpx
 			
 			end
 			
+			# after_merge_rpx_data provides a hook for application developers to perform account clean-up after authlogic_rpx has
+			# migrated registration details.
+			#
+			# By default, does nothing. It could, for example, be used to delete or disable the 'another_user' account
+			#
+			def after_merge_rpx_data( from_user, to_user )
+			
+			end
+											    
 			# experimental - a feature of RPX paid accounts and not properly developed/tested yet
 			def map_id?
 				self.class.map_id
