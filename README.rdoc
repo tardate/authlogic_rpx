@@ -142,6 +142,9 @@ The user model then needs to be tagged with "acts_as_authentic". authlogic_rpx a
     acts_as_authentic do |c|
       c.my_config_option = my_value # for available options see documentation in: Authlogic::ActsAsAuthentic
     end # block optional
+    
+    # enable Authlogic_RPX account merging (false by default, if this statement is not present)
+    account_merge_enabled true
 
     # not needed -- this relationship is automatically added by authlogic_rpx
     # has_many :rpx_identifiers, :class_name => 'RPXIdentifier'

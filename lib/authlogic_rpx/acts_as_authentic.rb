@@ -24,7 +24,21 @@ module AuthlogicRpx
 				rw_config(:map_id, value, false)
 			end
 			alias_method :map_id=, :map_id
+
+			# account_merge_enabled is used to enable merging of accounts.
+			#
+			# * <tt>Default:</tt> false
+			# * <tt>Accepts:</tt> boolean
+			def account_merge_enabled(value=false)
+				account_merge_enabled_value(value)
+			end
+			def account_merge_enabled_value(value=nil)
+				rw_config(:account_merge_enabled,value,false)
+			end      
+			alias_method :account_merge_enabled=,:account_merge_enabled
 			
+			
+						
 			# Name of this method is defined in find_by_rpx_identifier_method
 			# method in session.rb
 			def find_by_rpx_identifier(id)
@@ -110,9 +124,11 @@ module AuthlogicRpx
   				rpx_id = added_rpx_data['profile']['identifier']
   				rpx_provider_name	= added_rpx_data['profile']['providerName']
 					unless self.rpx_identifiers.find_by_identifier( rpx_id )
+					RAILS_DEFAULT_LOGGER.info "account_merge_enabled? = #{account_merge_enabled?}"
 					  # identifier not already set for this user
 					  another_user = self.class.find_by_rpx_identifier( rpx_id )
 					  if another_user
+					    return false unless account_merge_enabled?
 					    # another user already has this id registered
 					    # merge all IDs from another_user to self, with application callbacks before/after
 					    before_merge_rpx_data( another_user, self )
@@ -136,7 +152,12 @@ module AuthlogicRpx
 			def map_added_rpx_data( rpx_data )
 
 			end
-			
+
+			# determines if account merging is enabled
+			def account_merge_enabled?
+				self.class.account_merge_enabled_value
+			end
+						
 			# before_merge_rpx_data provides a hook for application developers to perform data migration prior to the merging of user accounts.
 			# This method is called just before authlogic_rpx merges the user registration for 'from_user' into 'to_user'
 			# Authlogic_RPX is responsible for merging registration data.
