@@ -272,14 +272,12 @@ In the map_rpx_data_each_login procedure, you will be writing to fields of the "
 
 map_added_rpx_data maps additional fields from the RPX response into the user object during the "add RPX to existing account" process.
 
-By default, it only maps the rpx_identifier field. If you have other fields you want to map, you can provide your own implementation of the map_added_rpx_data method in the User model (NOT UserSession, unlike for map_rpx_data and map_rpx_data_each_login).
-
-NB: If you override this method, you will be responsible for also mapping the rpx_identifier.
+Override this in your user model to perform field mapping as may be desired. 
+Provide your own implementation of the map_added_rpx_data method in the User model (NOT UserSession, unlike for map_rpx_data and map_rpx_data_each_login).
 
 In the map_added_rpx_data procedure, you will be writing to fields of the "self" object, pulling data from the rpx_data parameter. For example:
 
 	def map_added_rpx_data( rpx_data )
-		self.rpx_identifiers.create( :identifier => rpx_data['profile']['identifier'] )
 
 		# map some additional fields, e.g. photo_url
 		self.photo_url = rpx_data['profile']['photo'] if photo_url.blank?
