@@ -29,8 +29,20 @@ module AuthlogicRpx
 			# method in session.rb
 			def find_by_rpx_identifier(id)
 				identifier = RPXIdentifier.find_by_identifier(id)
-				return nil if identifier.nil?
-				identifier.user
+				if identifier.nil?
+				  if self.column_names.include? 'rpx_identifier'
+				    # check for authentication using <=1.0.4, migrate identifier to rpx_identifiers table
+				    user = self.find( :first, :conditions => [ "rpx_identifier = ?", id ] )
+				    unless user.nil?
+				      user.rpx_identifiers.create( :identifier => id )
+				    end
+				    return user
+				  else
+				    return nil
+				  end
+				else
+				  self.find( identifier.user_id )
+				end
 			end
 			
 		end
