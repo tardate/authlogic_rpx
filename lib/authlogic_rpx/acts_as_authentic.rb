@@ -61,6 +61,10 @@ module AuthlogicRpx
 					after_create :map_rpx_identifier
 					attr_writer :creating_new_record_from_rpx
 				end
+
+				RPXIdentifier.class_eval do
+					belongs_to klass.name.downcase.to_sym
+				end
 			end
 
 			# support a block given to the save
