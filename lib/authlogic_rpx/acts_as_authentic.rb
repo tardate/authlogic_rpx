@@ -41,7 +41,7 @@ module AuthlogicRpx
 				    return nil
 				  end
 				else
-				  self.find( identifier.user_id )
+				  identifier.user
 				end
 			end
 			
@@ -104,17 +104,31 @@ module AuthlogicRpx
 			#
 			def adding_rpx_identifier
 				return true unless session_class && session_class.controller
-				added_rpx_data = session_class.controller.session['added_rpx_data']	
+				added_rpx_data = session_class.controller.session['added_rpx_data']
 				unless added_rpx_data.blank?
 					session_class.controller.session['added_rpx_data'] = nil
-					unless self.rpx_identifiers.find_by_identifier( added_rpx_data['profile']['identifier'] )
-					    self.rpx_identifiers.create( :identifier => added_rpx_data['profile']['identifier'], :provider_name => added_rpx_data['profile']['providerName'] )
+  				rpx_id = added_rpx_data['profile']['identifier']
+  				rpx_provider_name	= added_rpx_data['profile']['providerName']
+					unless self.rpx_identifiers.find_by_identifier( rpx_id )
+					  # identifier not already set for this user
+					  another_user = self.class.find_by_rpx_identifier( rpx_id )
+					  if another_user
+					    # another user already has this id registered
+					    before_merge_rpx_data( another_user, self )
+					    # now merge all IDs from another_user to self 
+					    another_user.rpx_identifiers.each do |identifier|
+					      self.rpx_identifiers << identifier
+					    end
+					    # TODO: delete/disable 'another_user' account?
+					  else
+					    self.rpx_identifiers.create( :identifier => rpx_id, :provider_name => rpx_provider_name )
+					  end
 				  end
 					map_added_rpx_data( added_rpx_data ) 
 				end
 				return true
-			end
-			
+			end			
+						
 			# map_added_rpx_data maps additional fields from the RPX response into the user object during the "add RPX to existing account" process.
 			# Override this in your user model to perform field mapping as may be desired
 			# See https://rpxnow.com/docs#profile_data for the definition of available attributes
