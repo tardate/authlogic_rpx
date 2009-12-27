@@ -3,11 +3,14 @@ MIT-LICENSE
 Manifest
 README.rdoc
 Rakefile
-authlogic_rpx.gemspec
+generators/add_authlogic_rpx_migration/USAGE
+generators/add_authlogic_rpx_migration/add_authlogic_rpx_migration_generator.rb
+generators/add_authlogic_rpx_migration/templates/migration.rb
 init.rb
 lib/authlogic_rpx.rb
 lib/authlogic_rpx/acts_as_authentic.rb
 lib/authlogic_rpx/helper.rb
+lib/authlogic_rpx/rpx_identifier.rb
 lib/authlogic_rpx/session.rb
 lib/authlogic_rpx/version.rb
 rails/init.rb

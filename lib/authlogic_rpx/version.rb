@@ -40,8 +40,8 @@ module AuthlogicRpx
     end
 
     MAJOR = 1
-    MINOR = 0
-    TINY  = 4
+    MINOR = 1
+    TINY  = 0
 
     # The current version as a Version instance
     CURRENT = new(MAJOR, MINOR, TINY)
