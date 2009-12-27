@@ -138,7 +138,7 @@ module AuthlogicRpx
 			end
 			
 			# before_merge_rpx_data provides a hook for application developers to perform data migration prior to the merging of user accounts.
-			# This method is called just before authlogic_rpx merges theuser registration for 'from_user' into 'to_user'
+			# This method is called just before authlogic_rpx merges the user registration for 'from_user' into 'to_user'
 			# Authlogic_RPX is responsible for merging registration data.
 			#
 			# By default, it does not merge any other details (e.g. application data ownership)
@@ -150,7 +150,7 @@ module AuthlogicRpx
 			# after_merge_rpx_data provides a hook for application developers to perform account clean-up after authlogic_rpx has
 			# migrated registration details.
 			#
-			# By default, does nothing. It could, for example, be used to delete or disable the 'another_user' account
+			# By default, does nothing. It could, for example, be used to delete or disable the 'from_user' account
 			#
 			def after_merge_rpx_data( from_user, to_user )
 			
