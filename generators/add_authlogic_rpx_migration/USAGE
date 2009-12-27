@@ -1,0 +1,4 @@
+Description:
+    run ./script/generate add_authlogic_rpx_migration
+    
+    the add_authlogic_rpx_migration file will be created in db/migrate
