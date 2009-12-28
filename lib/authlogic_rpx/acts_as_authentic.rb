@@ -64,7 +64,6 @@ module AuthlogicRpx
 					validates_length_of_password_confirmation_field_options validates_length_of_password_confirmation_field_options.merge(:if => :validate_password_with_rpx?)
 					
 					before_validation :adding_rpx_identifier
-					attr_writer :creating_new_record_from_rpx
 				end
 
 				RPXIdentifier.class_eval do
@@ -92,11 +91,7 @@ module AuthlogicRpx
 		private
 			
 			def validate_password_with_rpx?
-				if @creating_new_record_from_rpx
-					false
-				else
-					!using_rpx? && require_password?
-				end
+				!using_rpx? && require_password?
 			end
 
 			# determines if account merging is enabled
