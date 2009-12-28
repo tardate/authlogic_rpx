@@ -134,23 +134,42 @@ If you are using auto-registration, you must also remove any database constraint
     end
   end
 
-NB: The RPXIdentifier model is included in the authlogic_rpx gem and does not need to be added to your project.
+{See the source for the sample 20091227051253_add_authlogic_rpx_migration.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/db/migrate/20091227051253_add_authlogic_rpx_migration.rb].
 
-The user model then needs to be tagged with "acts_as_authentic". authlogic_rpx automatically adds to the user model the relationship with RPXIdentifiers.
+The user model then needs to be tagged with "acts_as_authentic". This is the minimal configuration:
+
+  class User < ActiveRecord::Base
+    acts_as_authentic
+  end
+
+Two RPX-specific user configuration options are available.
+* account_merge_enabled: enable/disable user auto-registration (disabled by default)
+* rpx_extended_info: enable/disable extended profile information in the RPX authentication (disabled by default)
+
+For example, the following shows how to set standard Authlogic configurations (validations_scope), and enables RPX account merging:
 
   class User < ActiveRecord::Base
     acts_as_authentic do |c|
-      c.my_config_option = my_value # for available options see documentation in: Authlogic::ActsAsAuthentic
+      c.validations_scope = :company_id # for available Authlogic options see documentation in the various Config modules of Authlogic::ActsAsAuthentic
     end # block optional
     
     # enable Authlogic_RPX account merging (false by default, if this statement is not present)
     account_merge_enabled true
 
-    # not needed -- this relationship is automatically added by authlogic_rpx
-    # has_many :rpx_identifiers, :class_name => 'RPXIdentifier'
   end
 
 {See the source for the sample user.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user.rb].
+
+NB: The RPXIdentifier model is included in the authlogic_rpx gem and does not need to be added to your project.
+
+==== Upgrading from Authlogic_RPX v1.0.4 or earlier
+
+In Authlogic_RPX v1.0.4 and earlier, the rpx_identifier was stored in the user model. 
+From 1.1.0, this has been extracted to a separate table (rpx_identifiers). 
+
+When upgrading an application using 1.0.4 or earlier to 1.1.0, it is NOT necessary to migrate the rpx_identifiers. 
+Also DO NOT remove the legacy rpx_identifier column from your existing user model. 
+The Authlogic_RPX code will migrate users to the new database structure as and when they login.
 
 
 === 2. Add RPX configuration for the Authlogic session model
@@ -184,15 +203,6 @@ For example, to disable auto-registration and enable extended info:
   end
 
 {See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
-
-==== Upgrading from Authlogic_RPX v1.0.4 or earlier
-
-In Authlogic_RPX v1.0.4 and earlier, the rpx_identifier was stored in the user model. 
-From 1.1.0, this has been extracted to a separate table (rpx_identifiers). 
-
-When upgrading an application using 1.0.4 or earlier to 1.1.0, it is NOT necessary to migrate the rpx_identifiers. 
-Also DO NOT remove the legacy rpx_identifier column from your existing user model. 
-The Authlogic_RPX code will migrate users to the new database structure as and when they login.
 
 === 3. Add custom user profile mapping (optional)
 
@@ -281,7 +291,6 @@ Provide your own implementation of the map_added_rpx_data method in the User mod
 In the map_added_rpx_data procedure, you will be writing to fields of the "self" object, pulling data from the rpx_data parameter. For example:
 
 	def map_added_rpx_data( rpx_data )
-
 		# map some additional fields, e.g. photo_url
 		self.photo_url = rpx_data['profile']['photo'] if photo_url.blank?
 	end
