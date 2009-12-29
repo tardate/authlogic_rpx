@@ -162,7 +162,7 @@ module AuthlogicRpx
 						# get caught in a self-referential hell, since both session and
 						# user objects invoke each other upon save
 						self.new_registration = true
-						self.attempted_record.rpx_identifiers.build(:identifier => rpx_id, :provider_name => rpx_provider_name )
+						self.attempted_record.add_rpx_identifier( rpx_id, rpx_provider_name)
 						self.attempted_record.save_without_session_maintenance
 					else
 						errors.add_to_base("We did not find any accounts with that login. Enter your details and create an account.")
