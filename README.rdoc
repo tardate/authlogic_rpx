@@ -90,6 +90,7 @@ The options are:
 * :internal - uses Authlogic_RPX-based mapping. RPX identifiers are stored in a new model called RPXIdentifier. This model is completely private to Authlogic_RPX and you will not need to code anything specifically for it.
 * :rpxnow - currently not implemented; reserved for future use
 
+
 ==== Upgrading from Authlogic_RPX 1.0.4 or earlier
 
 In Authlogic_RPX v1.0.4 and earlier, the rpx_identifier was stored in the user model, and identity mapping was not supported.
@@ -99,6 +100,7 @@ If you are upgrading to 1.1.0 or later and wish to start using internal mapping:
 * It is NOT necessary to migrate the rpx_identifiers.
 * DO NOT remove the legacy rpx_identifier column from your existing user model. The Authlogic_RPX code will migrate users to the new database structure as and when they login.
 * You may wish to explicitly set account_mapping_mode to :internal in the User model (it saves a few cycles over the default :auto). e.g.
+
 
   class User < ActiveRecord::Base
     acts_as_authentic do |c|
@@ -110,6 +112,7 @@ If you are upgrading to 1.1.0 or later and wish to continue using the legacy/1.0
 * You will already have the rpx_identifier in your user model. DO NOT create any new migrations.
 * Just upgrade the gem and all should continue to work as before
 * You may wish to explicitly set account_mapping_mode to :none in the User model (it saves a few cycles over the default :auto). e.g.
+
 
   class User < ActiveRecord::Base
     acts_as_authentic do |c|
@@ -319,7 +322,7 @@ Authlogic_rpx provides three hooks for mapping information from the RPX profile 
  
 See https://rpxnow.com/docs#profile_data for the definition of available attributes in the RPX profile.
 
-=== 3a. map_rpx_data: user profile mapping during auto-registration
+==== 3a. map_rpx_data: user profile mapping during auto-registration
 
 When users auto-register, profile data from RPX is available to be inserted in the user's record on your site. By default, authlogic_rpx will map the username and email fields.
 
@@ -344,13 +347,12 @@ If you have other fields you want to map, you can provide your own implementatio
       self.attempted_record.fullname = @rpx_data['profile']['displayName'] if attempted_record.fullname.blank?
     
     	if rpx_extended_info?
-    		# map some extended attributes
+        # map some extended attributes
     	end
     end
   	
   end
 
-{See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
 
 WARNING: if you are using auto-registration, any fields you map should NOT have constraints enforced at the database level.
 Authlogic_rpx will optimistically attempt to save the user record during registration, and violating a database constraint will cause the authentication/registration to fail.
@@ -367,6 +369,7 @@ If it is not acceptable in your application to have user records created with po
 * automatically "uniquify" certain fields like username
 * save conflicting profile information to "pending user review" columns or a seperate table
 
+{See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
 
 ==== 3b. map_rpx_data_each_login: user profile mapping during login
 
@@ -378,10 +381,10 @@ This would mainly be used to update relatively volatile information that you are
 
 In the map_rpx_data_each_login procedure, you will be writing to fields of the "self.attempted_record" object, pulling data from the @rpx_data object. For example:
 			
-	def map_rpx_data_each_login
-		# we'll always update photo_url
-		self.attempted_record.photo_url = @rpx_data['profile']['photo']
-	end
+  def map_rpx_data_each_login
+    # we'll always update photo_url
+    self.attempted_record.photo_url = @rpx_data['profile']['photo']
+  end
 
 {See the source for the sample user_session.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user_session.rb].
 
@@ -578,15 +581,15 @@ Each takes an options hash:
 
 For example, to insert a login link in a navigation bar is as simple as this:
 
-		&lt;div id="user_nav"&gt;
-			&lt;%= link_to "Home", root_path %&gt; |
-			&lt;% if current_user %&gt;
-				&lt;%= link_to "Profile", user_path(:current) %&gt; |
-				&lt;%= link_to "Sign out", signout_path %&gt;
-			&lt;% else %&gt;
-				&lt;%= rpx_popup( :link_text => "Register/Sign in with RPX..", :app_name => "rails-authlogic-rpx-sample", :return_url => user_sessions_url, :unobtrusive => false ) %>&gt;
-			&lt;% end %&gt;
-		&lt;/div&gt;
+  <div id="user_nav">
+    <%= link_to "Home", root_path %> |
+    <% if current_user %>
+    <%= link_to "Profile", user_path(:current) %> |
+    <%= link_to "Sign out", signout_path %>
+    <% else %>
+    <%= rpx_popup( :link_text => "Register/Sign in with RPX..", :app_name => "rails-authlogic-rpx-sample", :return_url => user_sessions_url, :unobtrusive => false ) %>>
+    <% end %>
+  </div>
 
 === 8. Allow users to "Add RPX" to existing accounts (optional)
 
@@ -596,18 +599,18 @@ However, if you support other authentication methods (e.g. by password), you pro
 
 The route may be called anything you like. Let's use "addrpxauth" for example. 
 
-	# This action has the special purpose of receiving an update of the RPX identity information
-	# for current user - to add RPX authentication to an existing non-RPX account.
-	# RPX only supports :post, so this cannot simply go to update method (:put)
-	def addrpxauth
-		@user = current_user
-		if @user.save
-			flash[:notice] = "Successfully added RPX authentication for this account."
-			render :action => 'show'
-		else
-			render :action => 'edit'
-		end
-	end
+  # This action has the special purpose of receiving an update of the RPX identity information
+  # for current user - to add RPX authentication to an existing non-RPX account.
+  # RPX only supports :post, so this cannot simply go to update method (:put)
+  def addrpxauth
+    @user = current_user
+    if @user.save
+      flash[:notice] = "Successfully added RPX authentication for this account."
+      render :action => 'show'
+    else
+      render :action => 'edit'
+    end
+  end
 
 {This is demonstrated in the sample users_controller.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/controllers/users_controller.rb].
 
@@ -617,7 +620,7 @@ You'll note this is almost identical to the "update". The main difference is tha
 
 To make an "Add RPX authentication for this account.." link, use rpx_popup as for normal RPX login, but set the return_url to the "addrpxauth" callback you have provided, and set the option :add_rpx to tru:
       
-  &lt;%= rpx_popup( :link_text =&gt; "Add RPX authentication for this account..", :app_name =&gt; RPX_APP_NAME, :return_url =&gt; addrpxauth_url, :add_rpx =&gt; true, :unobtrusive =&gt; false ) %&gt; 
+  <%= rpx_popup( :link_text => "Add RPX authentication for this account..", :app_name => RPX_APP_NAME, :return_url => addrpxauth_url, :add_rpx => true, :unobtrusive => false ) %> 
 
 
 === 9. There is no 9
