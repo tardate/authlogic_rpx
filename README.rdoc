@@ -1,8 +1,8 @@
-= Authlogic RPX
+= Authlogic_RPX
 
 == Purpose
 
-Authlogic RPX is an Authlogic extension library that provides support for authentication using the RPX multi-authentication service offered by JanRain. To use RPX, you must first register your application at {RPX}[http://rpxnow.com/]. A free "Basic" account is available, in addition to paid enhanced versions. All work with Authlogic_RPX.  
+Authlogic_RPX is an Authlogic extension library that provides support for authentication using the RPX multi-authentication service offered by JanRain. To use RPX, you must first register your application at {RPX}[http://rpxnow.com/]. A free "Basic" account is available, in addition to paid enhanced versions. All work with Authlogic_RPX.  
 
 Key features and capabilities:
 * Auto-registration by default following RPX authentication (can be disabled if required)
@@ -30,7 +30,7 @@ The demonstration Rails application is where you can see Authlogic_RPX in action
 *	<b>RPX_now gem repo:</b> [http://github.com/grosser/rpx_now]
 
 
-== Installing Authlogic RPX gem
+== Installing Authlogic_RPX gem
 
 Three gems are required: authlogic, rpx_now, and authlogic_rpx. Install these as appropriate to your environment and preferences.
 
@@ -69,21 +69,21 @@ Include in RAILS_ROOT/.gems:
   authlogic_rpx --version '>= 1.1.0' --source gemcutter.org
 
 
-== About Authlogic RPX
+== About Authlogic_RPX
 
-Using Authlogic RPX is very similar to using standard authlogic, with the addition of just a few configuration options. So if you already have a project setup with authlogic, adding RPX support will be trivial.
+Using Authlogic_RPX is very similar to using standard authlogic, with the addition of just a few configuration options. So if you already have a project setup with authlogic, adding RPX support will be trivial.
 
 An important capability to be aware of is "auto registration". This means that when a user has logged in with RPX, if an account does not already exist in your application, it will be automatically created. That is, there is no separate/special "register" step for users to go through before just signing in. You can disable this if you need, but for most sites that use RPX as a primary authentication mechanism, this is probably what you want to happen.
 
-One of the main limitations of Authlogic RPX versions up to 1.0.4 was that it did not include any specific support for identity mapping. This means that if a user signs in with twitter one day, and facebook the next, then your application would see these as tow distinct users (NB: RPX provides some protection for this by trying to remember the last authentication method your users used. It's not always perfect however).
+One of the main limitations of Authlogic_RPX versions up to 1.0.4 was that it did not include any specific support for identity mapping. This means that if a user signs in with twitter one day, and facebook the next, then your application would see these as tow distinct users (NB: RPX provides some protection for this by trying to remember the last authentication method your users used. It's not always perfect however).
 
-From Authlogic RPX version 1.1.0 we have added built-in identity mapping and merging support. This is what we call 'internal' mapping. The legacy approach from 1.0.4 and earlier is still supported as an option. This mapping mode is called 'none'.
+From Authlogic_RPX version 1.1.0 we have added built-in identity mapping and merging support. This is what we call 'internal' mapping. The legacy approach from 1.0.4 and earlier is still supported as an option. This mapping mode is called 'none'.
 
-The JanRain RPXnow service has its own identity mapping implementation, but only available for paid accounts. This is still not supported directly by Authlogic RPX, but is something we'd like to get into a future version.
+The JanRain RPXnow service has its own identity mapping implementation, but only available for paid accounts. This is still not supported directly by Authlogic_RPX, but is something we'd like to get into a future version.
 
 === Chosing Your Mapping Mode
 
-When you configure Authlogic RPX, you will need to decide which mapping mode to use.
+When you configure Authlogic_RPX, you will need to decide which mapping mode to use.
 
 The options are:
 * :none - will use legacy/1.0.4 identity management with no mapping support. RPX identifiers are stored as a new attribute of your User model
@@ -122,11 +122,11 @@ e.g.
     end
   end
 
-== The Step-by-Step Guide to Using Authlogic RPX
+== The Step-by-Step Guide to Using Authlogic_RPX
 
 <i>Note: in what follows, the user model is called User and the session controller takes the name UserSession (the authlogic convention). You are not restricted to these names - could be Member and MemberSession for example - but for simplicity, this documentation will stick to using the "User" convention.</i>
 
-The main steps for enabling Authlogic RPX: 
+The main steps for enabling Authlogic_RPX: 
 * 1. Enable RPX for your user model
 * 2. Add RPX configuration for the Authlogic session model
 * 3. Add custom user profile mapping (optional)
@@ -723,6 +723,8 @@ Some design principles:
 * increment the version in lib/authlogic_rpx/version.rb
 * update gem version refs in README.rdoc
 * update CHANGELOG.rdoc
+
+Build and distribute (the gemcutter way):
 
   # update manifest file
   $ rake manifest
