@@ -1,4 +1,18 @@
 Description:
-    run ./script/generate add_authlogic_rpx_migration
+    ruby script/generate add_authlogic_rpx_migration [mapping:mapping_mode] [user_model:model_name] 
     
-    the add_authlogic_rpx_migration file will be created in db/migrate
+    Creates an add_authlogic_rpx_migration file in db/migrate.
+    
+    The mapping_mode parameter indicates which style of Authlogic_RPX-supported identity 
+    mapping should be used. Allowed values for mapping_mode are:
+       none
+       internal 
+    Default mapping_mode is 'internal'
+    
+    The user_model parameter specifies the name of the user/member model in your application.
+    Default model_name is 'User'
+
+    e.g. to generate the RPX migration where the user model is called 'Member' and you do not
+    want to support identity mapping:
+    
+    ruby script/generate add_authlogic_rpx_migration mapping:none user_model:member
