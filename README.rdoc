@@ -99,8 +99,9 @@ If you are upgrading to 1.1.0 or later and wish to start using internal mapping:
 * Use the add_authlogic_rpx_migration generator to create the migration to support the new RPXIdentifiers model 
 * It is NOT necessary to migrate the rpx_identifiers.
 * DO NOT remove the legacy rpx_identifier column from your existing user model. The Authlogic_RPX code will migrate users to the new database structure as and when they login.
-* You may wish to explicitly set account_mapping_mode to :internal in the User model (it saves a few cycles over the default :auto). e.g.
+* You may wish to explicitly set account_mapping_mode to :internal in the User model (it saves a few cycles over the default :auto). 
 
+e.g.
 
   class User < ActiveRecord::Base
     acts_as_authentic do |c|
@@ -111,8 +112,9 @@ If you are upgrading to 1.1.0 or later and wish to start using internal mapping:
 If you are upgrading to 1.1.0 or later and wish to continue using the legacy/1.0.4 approach (i.e. no mapping):
 * You will already have the rpx_identifier in your user model. DO NOT create any new migrations.
 * Just upgrade the gem and all should continue to work as before
-* You may wish to explicitly set account_mapping_mode to :none in the User model (it saves a few cycles over the default :auto). e.g.
+* You may wish to explicitly set account_mapping_mode to :none in the User model (it saves a few cycles over the default :auto). 
 
+e.g.
 
   class User < ActiveRecord::Base
     acts_as_authentic do |c|
@@ -133,6 +135,7 @@ The main steps for enabling Authlogic RPX:
 * 6. Setup the Authlogic user controller
 * 7. Use view helpers to provide login links
 * 8. Allow users to "Add RPX" to existing accounts (optional)
+* 9. Customise Account Merge Behaviour (optional)
 
 
 === 1. Enable RPX for your user model
@@ -623,7 +626,63 @@ To make an "Add RPX authentication for this account.." link, use rpx_popup as fo
   <%= rpx_popup( :link_text => "Add RPX authentication for this account..", :app_name => RPX_APP_NAME, :return_url => addrpxauth_url, :add_rpx => true, :unobtrusive => false ) %> 
 
 
-=== 9. There is no 9
+=== 9. Customise Account Merge Behaviour (optional)
+
+Account merging is disabled by default. It is enabled by setting account_merge_enabled to true in the User model:
+
+  class User < ActiveRecord::Base
+  	acts_as_authentic do |c|
+  		c.account_merge_enabled true
+  	end
+  end	
+	
+ 
+Account merging is applicable if you have allowed users to add RPX to an existing accounts (see 8. Allow users to "Add RPX" to existing accounts). When merging is enabled, Authlogic_RPX will migrate the RPX login identifier(s) from other users who had previously claimed the identifiers now being used.
+
+For example, take the following scenario:
+* Joe registers and creates an account using RPX identifier A (say, a twitter account)
+* Joseph registers and creates an account using RPX identifier B (say, an OpenID account)
+* It so happens that Joe and Joseph are the same person...
+* Joseph signs in with RPX identifier B, and uses the "Add RPX" feature to attempt to add RPX identifier A to his account
+* At this point, if you have account_merge_enabled disabled (the default), it will fail since the id is already used by Joe
+* If you have account_merge_enabled enabled, Authlogic_RPX will transfer the RPX identifier A to Joseph's account
+  * If you are using account mapping = :none, RPX identifier A will just replace RPX identifier B for Joseph
+  * If you are using account mapping = :internal, RPX identifier A will be added to Joseph's account (he can now login with both A and B)
+* The default behaviour of account mapping will leave Joe's account in place (but with no way to login via RPX). Authlogic_RPX does not merge any other details (e.g. application data ownership)
+
+Authlogic_rpx provides two hooks for customising the account merge behaviour to handle things like migration of application objects and cleaning up old accounts:
+  
+* before_merge_rpx_data: called before the RPX identifiers are transfered. It provides a hook for application developers to perform data migration prior to the merging of user accounts. 
+* after_merge_rpx_data: called after the RPX identifiers are transfered. It provides a hook for application developers to perform account clean-up after (perhaps delete or disable to account merged from)
+
+
+The Authlogic_RPX sample application provides an example of migrating application objects and cleaning up obsolete accounts. From the user model:
+  
+  # before_merge_rpx_data provides a hook for application developers to perform data migration prior to the merging of user accounts.
+  # This method is called just before authlogic_rpx merges the user registration for 'from_user' into 'to_user'
+  # Authlogic_RPX is responsible for merging registration data.
+  #
+  # By default, it does not merge any other details (e.g. application data ownership)
+  #
+  def before_merge_rpx_data( from_user, to_user )
+  	RAILS_DEFAULT_LOGGER.info "in before_merge_rpx_data: migrate articles and comments from #{from_user.username} to #{to_user.username}"
+  	to_user.articles << from_user.articles
+  	to_user.comments << from_user.comments
+  end
+  
+  # after_merge_rpx_data provides a hook for application developers to perform account clean-up after authlogic_rpx has
+  # migrated registration details.
+  #
+  # By default, does nothing. It could, for example, be used to delete or disable the 'from_user' account
+  #
+  def after_merge_rpx_data( from_user, to_user )
+  	RAILS_DEFAULT_LOGGER.info "in after_merge_rpx_data: destroy #{from_user.inspect}"	
+  	from_user.destroy
+  end
+
+{See the sample user.rb}[http://github.com/tardate/rails-authlogic-rpx-sample/blob/master/app/models/user.rb].
+
+=== Ready to try it?
 
 That's all there is. To see Authlogic_RPX in action, check out the demonstration Rails application:
 * <b>Live Demonstration Site:</b> [http://rails-authlogic-rpx-sample.heroku.com]
