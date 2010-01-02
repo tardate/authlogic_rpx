@@ -80,8 +80,6 @@ module AuthlogicRpx
 			# Set up some simple validations
 			def self.included(klass)
 				klass.class_eval do
-				  RAILS_DEFAULT_LOGGER.info "account_mapping_mode_value = #{account_mapping_mode_value}"
-				  RAILS_DEFAULT_LOGGER.info "account_mapping_mode_used = #{account_mapping_mode_used}"
 				  
 				  case
 				  when using_no_mapping?
