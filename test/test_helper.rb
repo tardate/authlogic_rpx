@@ -1,5 +1,6 @@
-require "test/unit"
 require "rubygems"
+gem 'test-unit'
+require "test/unit"
 require "ruby-debug"
 require "active_record"
 
