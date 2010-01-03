@@ -12,18 +12,22 @@ module RPXNow
   end
   
   def self.get_test_data(token)
-    response = Rpxresponse.find_by_username('valid_rpx_auth_user_one')
-    
-    data = {}
-    data['profile'] = {}
-    data['profile']['identifier'] = response.identifier
-    data['profile']['providerName'] = response.provider_name
-    
-    data[:identifier] = data['profile']['identifier']
-    data[:providerName] = data['profile']['providerName']
-    data[:email] = response.verified_email
-    data[:username] = response.username
-    data[:name] = response.display_name
+
+    response = Rpxresponse.find_by_username(token)    
+    if response
+      data = {}
+      data['profile'] = {}
+      data['profile']['identifier'] = response.identifier
+      data['profile']['providerName'] = response.provider_name
+      data['profile']['preferredUsername'] = response.username
+      data['profile']['email'] = response.verified_email
+      
+      data[:identifier] = data['profile']['identifier']
+      data[:providerName] = data['profile']['providerName']
+      data[:email] = response.verified_email
+      data[:username] = data['profile']['preferredUsername']
+      data[:name] = response.display_name
+    end
     
     data
   end

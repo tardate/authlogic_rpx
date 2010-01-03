@@ -12,3 +12,9 @@ valid_rpx_auth_user_two:
   verified_email: valid_rpx_auth_user_two@provider.one
   display_name: valid rpx auth user two
 
+unregistered_rpx_auth_user_one:
+  identifier : http://provider.one/unregistered_rpx_auth_user_one
+  provider_name: provider.one
+  username: unregistered_rpx_auth_user_one
+  verified_email: unregistered_rpx_auth_user_one@provider.one
+  display_name: unregistered rpx auth user one

@@ -7,6 +7,7 @@ class SessionSettingsTest < ActiveSupport::TestCase
   end
  
   must "auto_register default is enabled" do
+    UserSession.auto_register
     assert_true UserSession.auto_register_value
   end 
   
