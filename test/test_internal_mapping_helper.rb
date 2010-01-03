@@ -1,6 +1,14 @@
 require "rubygems"
-gem 'test-unit'
-require "test/unit"
+begin
+  gem 'test-unit'
+  require "test/unit"
+  require File.dirname(__FILE__) + "/libs/ext_test_unit"
+rescue Gem::LoadError
+  # assume using stdlib Test:Unit
+  require "test/unit"
+  require File.dirname(__FILE__) + "/libs/ext_test_unit"
+end
+
 require "ruby-debug"
 require "active_record"
 require "action_controller"
@@ -65,7 +73,6 @@ RPX_API_KEY = 'abcdefghijklmnopqrstuvwxyz' unless defined? RPX_API_KEY
 
 require File.dirname(__FILE__) + "/../lib/authlogic_rpx"
 
-require File.dirname(__FILE__) + "/libs/ext_test_unit"
 require File.dirname(__FILE__) + "/libs/rails_trickery"
 require File.dirname(__FILE__) + '/libs/rpxresponse'
 require File.dirname(__FILE__) + '/libs/mock_rpx_now'
