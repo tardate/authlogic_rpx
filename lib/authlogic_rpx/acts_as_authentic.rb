@@ -40,7 +40,8 @@ module AuthlogicRpx
 			def account_mapping_mode(value=:auto)
 				account_mapping_mode_value(value)
 			end
-			def account_mapping_mode_value(value=nil) 
+			def account_mapping_mode_value(value=nil)
+			  raise AuthlogicRpx::ActsAsAuthentic::ConfigurationError.new unless value.nil? || [:auto,:none,:internal].include?( value ) 
 				rw_config(:account_mapping_mode,value,:auto)
 			end      
 			alias_method :account_mapping_mode=,:account_mapping_mode
