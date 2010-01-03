@@ -70,7 +70,7 @@ module AuthlogicRpx
 			# For use in the session controller to help direct the most appropriate action to follow.
 			# 
 			def new_registration?
-				new_registration
+				new_registration ||= false
 			end
 			
 			# Determines if the authenticated user has a complete registration (no validation errors)
@@ -138,7 +138,7 @@ module AuthlogicRpx
 					:extended => rpx_extended_info?) { |raw| raw }
 				
 				# If we don't have a valid sign-in, give-up at this point
-				if @rpx_data.nil?
+				if @rpx_data.nil? || @rpx_data['profile'].nil?
 					errors.add_to_base("Authentication failed. Please try again.")
 					return false
 				end
