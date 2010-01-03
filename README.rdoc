@@ -696,7 +696,6 @@ Authlogic_RPX is open source and hosted on {github}[http://github.com/tardate/au
 If you have issues or feedback, please log them in the {issues list on github}[http://github.com/tardate/authlogic_rpx/issues]
 
 Some of the improvements currently on the radar:
-* Still figuring out how to write some good automated tests
 * Implement/verify support for RPX "paid" service features of their "Plus" and "Pro" accounts (to date, only tested with free RPX "Basic" account)
 
 
