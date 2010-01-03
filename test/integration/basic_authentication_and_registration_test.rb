@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../test_helper.rb'
+# requires test_helper to be loaded first
 
-class BasicTest < ActiveSupport::TestCase
+class BasicAuthenticationAndRegistrationTest < ActiveSupport::TestCase
 
   must "authenticate valid existing user" do
     test_user = users(:valid_rpx_auth_user_one)

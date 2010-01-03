@@ -18,3 +18,31 @@ Echoe.new("authlogic_rpx") do |p|
 
   p.install_message = ""
 end
+
+
+Rake::Task[:test].clear
+
+Rake::TestTask.new(:unit) do |t|
+  t.libs << "test/libs"
+  t.pattern = 'test/unit/*test.rb'
+  t.verbose = true
+end
+
+Rake::TestTask.new(:no_mapping) do |t|
+  t.libs << "test/libs"
+  t.test_files = FileList.new('test/unit/*test.rb', 'test/integration/no_mapping/*test.rb')
+  t.verbose = true
+end
+
+Rake::TestTask.new(:internal_mapping) do |t|
+  t.libs << "test/libs"
+  t.test_files = FileList.new('test/integration/internal_mapping/*test.rb')
+  t.verbose = true
+end
+
+task :test do
+  Rake::Task[:no_mapping].invoke
+  Rake::Task[:internal_mapping].invoke
+end
+
+task :default => :test
