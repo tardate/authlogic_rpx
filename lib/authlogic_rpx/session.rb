@@ -70,7 +70,7 @@ module AuthlogicRpx
 			# For use in the session controller to help direct the most appropriate action to follow.
 			# 
 			def new_registration?
-				new_registration ||= false
+				new_registration || !new_registration.nil?
 			end
 			
 			# Determines if the authenticated user has a complete registration (no validation errors)
