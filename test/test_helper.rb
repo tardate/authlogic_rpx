@@ -3,12 +3,27 @@ gem 'test-unit'
 require "test/unit"
 require "ruby-debug"
 require "active_record"
+require "action_controller"
 
 ActiveRecord::Schema.verbose = false
-ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
+
+begin
+  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
+rescue ArgumentError
+  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")
+end
+
 ActiveRecord::Base.configurations = true
 ActiveRecord::Schema.define(:version => 1) do
-  
+
+  create_table :rpxresponses do |t|
+    t.string    :identifier
+    t.string    :provider_name
+    t.string    :username
+    t.string    :verified_email
+    t.string    :display_name
+  end
+    
   create_table :users do |t|
     t.datetime  :created_at
     t.datetime  :updated_at
@@ -31,13 +46,22 @@ ActiveRecord::Schema.define(:version => 1) do
     t.string    :current_login_ip
     t.string    :last_login_ip
   end
+
 end
 
 require "active_record/fixtures"
-require "openid"
 require "authlogic"
 require "authlogic/test_case"
+
+require "rpx_now"
+RPX_API_KEY = 'abcdefghijklmnopqrstuvwxyz' unless defined? RPX_API_KEY
+
+require File.dirname(__FILE__) + "/../lib/authlogic_rpx"
+
+require File.dirname(__FILE__) + "/libs/ext_test_unit"
 require File.dirname(__FILE__) + "/libs/rails_trickery"
+require File.dirname(__FILE__) + '/libs/rpxresponse'
+require File.dirname(__FILE__) + '/libs/mock_rpx_now'
 require File.dirname(__FILE__) + '/libs/user'
 require File.dirname(__FILE__) + '/libs/user_session'
 
@@ -51,12 +75,6 @@ class ActiveSupport::TestCase
   setup :activate_authlogic
   
   private
-    def activate_authlogic
-      Authlogic::Session::Base.controller = controller
-    end
-    
-    def controller
-      @controller ||= Authlogic::TestCase::ControllerAdapter.new(ActionController.new)
-    end
+
     
 end

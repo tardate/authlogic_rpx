@@ -2,9 +2,9 @@
 # these constants be present. The only other alternative is to use an entire rails application for testing
 # which is a little too overboard for this, I think.
 
-RAILS_ROOT = ''
+#RAILS_ROOT = ''
 
-class ActionController < Authlogic::TestCase::MockController
+class ActionControllerEx < Authlogic::TestCase::MockController
   class Request < Authlogic::TestCase::MockRequest
     def request_method
       ""
