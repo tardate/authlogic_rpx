@@ -1,9 +1,11 @@
-== 1.1.0 released YYYY-MM-DD
+== 1.1.0 released 2010-01-05
 
-* added identity mapping and merging support 
+* added identity mapping and merging support  [GH#10,GH#13]
   * new configuration parameters: account_mapping_mode; account_merge_enabled.
   * new callbacks: before_merge_rpx_data; after_merge_rpx_data. 
 * updated gem support to authlogic 2.1.3 and rpx_now 0.6.11
+* support all rpx_now options in popup/embed code [GH#6]
+* automated tests are now working [GH#7]
 * documentation updates
 
 == 1.0.4 released 2009-10-10
