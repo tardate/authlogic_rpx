@@ -1,3 +1,7 @@
+== 1.1.1 released 2010-01-17
+
+* updated gem support to rpx_now 0.6.12 (includes url encoding fix)
+
 == 1.1.0 released 2010-01-05
 
 * added identity mapping and merging support  [GH#10,GH#13]

@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{authlogic_rpx}
-  s.version = "1.1.0"
+  s.version = "1.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Paul Gallagher / tardate"]
-  s.date = %q{2010-01-05}
+  s.date = %q{2010-01-17}
   s.description = %q{Authlogic extension/plugin that provides RPX (rpxnow.com) authentication support}
   s.email = %q{gallagher.paul@gmail.com}
   s.extra_rdoc_files = ["CHANGELOG.rdoc", "README.rdoc", "lib/authlogic_rpx.rb", "lib/authlogic_rpx/acts_as_authentic.rb", "lib/authlogic_rpx/helper.rb", "lib/authlogic_rpx/rpx_identifier.rb", "lib/authlogic_rpx/session.rb", "lib/authlogic_rpx/version.rb"]
@@ -26,13 +26,13 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<authlogic>, [">= 2.1.3"])
-      s.add_runtime_dependency(%q<rpx_now>, [">= 0.6.11"])
+      s.add_runtime_dependency(%q<rpx_now>, [">= 0.6.12"])
     else
       s.add_dependency(%q<authlogic>, [">= 2.1.3"])
-      s.add_dependency(%q<rpx_now>, [">= 0.6.11"])
+      s.add_dependency(%q<rpx_now>, [">= 0.6.12"])
     end
   else
     s.add_dependency(%q<authlogic>, [">= 2.1.3"])
-    s.add_dependency(%q<rpx_now>, [">= 0.6.11"])
+    s.add_dependency(%q<rpx_now>, [">= 0.6.12"])
   end
 end
