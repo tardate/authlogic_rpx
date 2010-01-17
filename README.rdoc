@@ -36,8 +36,8 @@ Three gems are required: authlogic, rpx_now, and authlogic_rpx. Install these as
 
 Currently tested versions:
 * authlogic 2.1.3,2.1.2,2.1.1
-* rpx_now 0.6.11,0.6.6
-* authlogic_rpx 1.1.0
+* rpx_now 0.6.12 (0.6.11,0.6.6 support is deprecated)
+* authlogic_rpx 1.1.1
 
 
 === 1. Direct gem installation
@@ -52,8 +52,8 @@ Currently tested versions:
 Include in config/environment.rb:
   
   config.gem 'authlogic', :version => '>= 2.1.3'
-  config.gem 'rpx_now', :version => '>= 0.6.11', :source => 'http://gemcutter.org'
-  config.gem 'authlogic_rpx', :version => '>= 1.1.0', :source => 'http://gemcutter.org'
+  config.gem 'rpx_now', :version => '>= 0.6.12', :source => 'http://gemcutter.org'
+  config.gem 'authlogic_rpx', :version => '>= 1.1.1', :source => 'http://gemcutter.org'
 
 Then to install, run from the command line:
 
@@ -65,8 +65,8 @@ Then to install, run from the command line:
 Include in RAILS_ROOT/.gems:
   
   authlogic --version '>= 2.1.3'
-  rpx_now --version '>= 0.6.11' --source gemcutter.org
-  authlogic_rpx --version '>= 1.1.0' --source gemcutter.org
+  rpx_now --version '>= 0.6.12' --source gemcutter.org
+  authlogic_rpx --version '>= 1.1.1' --source gemcutter.org
 
 
 == About Authlogic_RPX
