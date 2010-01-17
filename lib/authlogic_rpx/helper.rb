@@ -11,7 +11,7 @@ module AuthlogicRpx
 			params = (
 				{ :authenticity_token => form_authenticity_token, :add_rpx => options[:add_rpx] }.collect { |n| "#{n[0]}=#{ u(n[1]) }" if n[1] }
 			).compact.join('&')
-			RPXNow.embed_code(options[:app_name], u( options[:return_url] + '?' + params ) )
+			RPXNow.embed_code(options[:app_name], options[:return_url] + '?' + params )
 		end
 
 		# helper to insert a link to pop-up RPX login
@@ -34,16 +34,7 @@ module AuthlogicRpx
 				{ :authenticity_token => form_authenticity_token, :add_rpx => add_rpx }.collect { |n| "#{n[0]}=#{ u(n[1]) }" if n[1] }
 			).compact.join('&') 
 			
-			# as of rpx_now 0.6.11, there is still an issue with url-encoding of the return path containing additional parameters 
-			# (as we are using here to get the form_authenticity_token returned.
-			# To get around this, we need to ensure hrefs are url-encoded, 
-			# while the link provided to the rpx_now javascript popup should _not_ be url-encoded
-			if unobtrusive
-  			RPXNow.popup_code( link_text, app_name,	u( return_url ), options	)
-			else
-  			RPXNow.popup_code( link_text, app_name,	u( return_url ), options.merge( :unobtrusive => true )	) +
-        RPXNow.popup_source(app_name, return_url, options ) 
-      end
+			RPXNow.popup_code( link_text, app_name,	return_url, options	)
 		end
 
 	end
