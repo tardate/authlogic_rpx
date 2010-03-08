@@ -228,8 +228,6 @@ module AuthlogicRpx
 				  
 					map_added_rpx_data( added_rpx_data ) 
 				end
-				
-				return true
 			end	
 			
 			# merge_user_id is an internal method used to merge the actual RPX identifiers
