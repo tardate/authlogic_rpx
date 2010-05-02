@@ -5,10 +5,11 @@
 Authlogic_RPX is an Authlogic extension library that provides support for authentication using the RPX multi-authentication service offered by JanRain. To use RPX, you must first register your application at {RPX}[http://rpxnow.com/]. A free "Basic" account is available, in addition to paid enhanced versions. All work with Authlogic_RPX.  
 
 Key features and capabilities:
+* You can offer your users all the authentication methods supported by RPX (OpenID, Facebook, twitter, Google, Yahoo!, LinkedIn etc)
 * Auto-registration by default following RPX authentication (can be disabled if required)
-* Can allow users to enable RPX authentication for their existing password-enabled accounts
 * View helpers to assist with inserting login fragments in pages
 * Can co-exist with standard password authentication
+* Allow users to enable RPX authentication for any existing password-enabled accounts
 * Supports identity mapping and merging (allowing users to have multiple logins associated with one member record on your site)
 
 
@@ -594,6 +595,13 @@ For example, to insert a login link in a navigation bar is as simple as this:
     <% end %>
   </div>
 
+<b>NOTE:</b> One of the most common problems people encounter in testing out authlogic_rpx is to <b>no set the correct :app_name</b>.
+The example above shows how this parameter is set for the rails-authlogic-rpx-sample, but you need to replace this value with the
+name you registered at rpxnow.com .
+
+<b>NOTE2:</b> Make sure the application name is entered here all in lowercase. If you do not, it can cause SSL certificate errors to
+be displayed when logging in with certain browsers (notably Android 2.1 webkit).
+
 === 8. Allow users to "Add RPX" to existing accounts (optional)
 
 If you got this far and have a working application, you are ready to go, especially if you only plan to support RPX authentication.
@@ -744,4 +752,4 @@ The idea of adding RPX support to authlogic is not new. Some early ideas were fo
 *	<b>http://github.com/gampleman/authlogic_rpx/</b> similar, but including an implementation of the RPX api
 
 authlogic_rpx was created by Paul Gallagher (tardate.com) and released under the MIT license.
-Big thanks for contributions from {John}[http://gitub.com/jjb] and {Damir}[http://gitub.com/sidonath]
+Big thanks for contributions from {Joris}[http://github.com/trooster], {John}[http://gitub.com/jjb], {Damir}[http://gitub.com/sidonath], {Ben}[http://github.com/Empact]
