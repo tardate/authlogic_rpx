@@ -106,7 +106,7 @@ module AuthlogicRpx
         			    return nil
         			  end
         			else
-        			  identifier.user
+        			  identifier.send( self.class_name.downcase )
         			end
         		end
 			            
@@ -122,8 +122,11 @@ module AuthlogicRpx
 					before_validation :adding_rpx_identifier
 				end
 
+        # add relations and validation to RPXIdentifier based on the actual user model class name used
+        #
 				RPXIdentifier.class_eval do
 					belongs_to klass.name.downcase.to_sym
+        	validates_presence_of "#{klass.name.downcase}_id".to_sym
 				end
 			end
 
