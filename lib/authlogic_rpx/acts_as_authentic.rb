@@ -32,7 +32,6 @@ module AuthlogicRpx
 			end      
 			alias_method :account_merge_enabled=,:account_merge_enabled
 			
-
 			# account_mapping_mode is used to explicitly set/override the mapping behaviour.
 			#
 			# * <tt>Default:</tt> :auto
@@ -78,57 +77,47 @@ module AuthlogicRpx
 		
 		module Methods
 		
-			# Set up some simple validations
+			# Mix-in the required methods based on mapping mode
+			#
 			def self.included(klass)
 				klass.class_eval do
 				  
 				  case
 				  when using_no_mapping?
-				    alias_method :using_rpx?, :using_rpx__nomap?
-				    alias_method :add_rpx_identifier, :add_rpx_identifier__nomap
-				    alias_method :identified_by?, :identified_by__nomap?
-				    alias_method :merge_user_id, :merge_user_id__nomap
-				    
-				    # Uses default find_by_rpx_identifier class method
-				    
-				    # Add an rpx_identifier collection method
-				    def rpx_identifiers
-				      [{ :identifier => rpx_identifier, :provider_name => "Unknown" }]
-				    end
+				    include AuthlogicRpx::MethodSet_NoMapping
 				    
           when using_internal_mapping? 
-				    alias_method :using_rpx?, :using_rpx__internal?
-				    alias_method :add_rpx_identifier, :add_rpx_identifier__internal
-				    alias_method :identified_by?, :identified_by__internal?
-				    alias_method :merge_user_id, :merge_user_id__internal
+            include AuthlogicRpx::MethodSet_InternalMapping
             has_many :rpx_identifiers, :class_name => 'RPXIdentifier', :dependent => :destroy
             
-      			# Add custom find_by_rpx_identifier class method
-      			def self.find_by_rpx_identifier(id)
-      				identifier = RPXIdentifier.find_by_identifier(id)
-      				if identifier.nil?
-      				  if self.column_names.include? 'rpx_identifier'
-      				    # check for authentication using <=1.0.4, migrate identifier to rpx_identifiers table
-      				    user = self.find( :first, :conditions => [ "rpx_identifier = ?", id ] )
-      				    unless user.nil?
-      				      user.add_rpx_identifier( id, 'Unknown' )
-      				    end
-      				    return user
-      				  else
-      				    return nil
-      				  end
-      				else
-      				  identifier.user
-      				end
-      			end
+        		# Add custom find_by_rpx_identifier class method
+        		#
+        		def self.find_by_rpx_identifier(id)
+        			identifier = RPXIdentifier.find_by_identifier(id)
+        			if identifier.nil?
+        			  if self.column_names.include? 'rpx_identifier'
+        			    # check for authentication using <=1.0.4, migrate identifier to rpx_identifiers table
+        			    user = self.find( :first, :conditions => [ "rpx_identifier = ?", id ] )
+        			    unless user.nil?
+        			      user.add_rpx_identifier( id, 'Unknown' )
+        			    end
+        			    return user
+        			  else
+        			    return nil
+        			  end
+        			else
+        			  identifier.user
+        			end
+        		end
 			            
           else
             raise AuthlogicRpx::ActsAsAuthentic::ConfigurationError.new( "invalid or unsupported account_mapping_mode" )
           end
 
-					validates_length_of_password_field_options validates_length_of_password_field_options.merge(:if => :validate_password_with_rpx?)
-					validates_confirmation_of_password_field_options validates_confirmation_of_password_field_options.merge(:if => :validate_password_with_rpx?)
-					validates_length_of_password_confirmation_field_options validates_length_of_password_confirmation_field_options.merge(:if => :validate_password_with_rpx?)
+          # Set up some fundamental conditional validations
+					validates_length_of_password_field_options validates_length_of_password_field_options.merge(:if => :validate_password_not_rpx?)
+					validates_confirmation_of_password_field_options validates_confirmation_of_password_field_options.merge(:if => :validate_password_not_rpx?)
+					validates_length_of_password_confirmation_field_options validates_length_of_password_confirmation_field_options.merge(:if => :validate_password_not_rpx?)
 					
 					before_validation :adding_rpx_identifier
 				end
@@ -144,45 +133,17 @@ module AuthlogicRpx
 				yield(result) if block_given?
 				result
 			end
-
-			# test if account it using RPX authentication
-			# aliased to using_rpx based on authlogic_rpx configuration mode
-			def using_rpx__nomap?
-			  !rpx_identifier.blank?
-			end
-			def using_rpx__internal?
-			  !rpx_identifiers.empty?
-			end
 			
 			# test if account it using normal password authentication
 			def using_password?
 				!send(crypted_password_field).blank?
 			end
 
-      # adds RPX identification to the instance.
-      # Abstracts how the RPX identifier is added to allow for multiplicity of underlying implementations
-			# aliased to add_rpx_identifier based on authlogic_rpx configuration mode
-      def add_rpx_identifier__nomap( rpx_id, rpx_provider_name )
-			  self.rpx_identifier = rpx_id
-			  #TODO: make rpx_provider_name a std param?
-      end
-      def add_rpx_identifier__internal( rpx_id, rpx_provider_name )
-			  self.rpx_identifiers.build(:identifier => rpx_id, :provider_name => rpx_provider_name )
-      end
-      
-      # Checks if given identifier is an identity for this account
-      # aliased to identified_by based on authlogic_rpx configuration mode
-			def identified_by__nomap?( id )
-				self.rpx_identifier == id
-			end
-			def identified_by__internal?( id )
-				self.rpx_identifiers.find_by_identifier( id )
-			end
 			
 		private
 			
-			# tests if password authentication should be checked: if rpx is enabled (but not used by this user) 
-			def validate_password_with_rpx?
+			# tests if password authentication should be checked instead of rpx (i.e. if rpx is enabled but not used by this user) 
+			def validate_password_not_rpx?
 				!using_rpx? && require_password?
 			end
 
@@ -230,19 +191,6 @@ module AuthlogicRpx
 				end
 			end	
 			
-			# merge_user_id is an internal method used to merge the actual RPX identifiers
-			# aliased to merge_user_id based on authlogic_rpx configuration mode
-			def merge_user_id__nomap( from_user )
-			  self.rpx_identifier = from_user.rpx_identifier
-			  from_user.rpx_identifier = nil
-			  from_user.save
-			  from_user.reload		
-			end		
-			def merge_user_id__internal( from_user )
-				self.rpx_identifiers << from_user.rpx_identifiers	
-				from_user.reload
-			end
-			
 									
 			# map_added_rpx_data maps additional fields from the RPX response into the user object during the "add RPX to existing account" process.
 			# Override this in your user model to perform field mapping as may be desired
@@ -276,4 +224,78 @@ module AuthlogicRpx
 			
 		end
 	end
+	
+	# Mix-in collection of methods that are specific to no-mapping mode of operation
+	#
+	module MethodSet_NoMapping
+		# test if account it using RPX authentication
+		# 
+		def using_rpx?
+		  !rpx_identifier.blank?
+		end
+		
+    # adds RPX identification to the instance.
+    # Abstracts how the RPX identifier is added to allow for multiplicity of underlying implementations
+		# 
+    def add_rpx_identifier( rpx_id, rpx_provider_name )
+		  self.rpx_identifier = rpx_id
+		  #TODO: make rpx_provider_name a std param?
+    end
+    
+    # Checks if given identifier is an identity for this account
+    # 
+		def identified_by?( id )
+			self.rpx_identifier == id
+		end
+
+		# merge_user_id is an internal method used to merge the actual RPX identifiers
+		# 
+		def merge_user_id( from_user )
+		  self.rpx_identifier = from_user.rpx_identifier
+		  from_user.rpx_identifier = nil
+		  from_user.save
+		  from_user.reload		
+		end
+
+    # Uses default find_by_rpx_identifier class method
+    
+    # Add an rpx_identifier collection method
+    def rpx_identifiers
+      [{ :identifier => rpx_identifier, :provider_name => "Unknown" }]
+    end
+	end
+	
+	
+	# Mix-in collection of methods that are specific to internal mapping mode of operation
+	#
+	module MethodSet_InternalMapping
+		# test if account it using RPX authentication
+		# 
+		def using_rpx?
+		  !rpx_identifiers.empty?
+		end	
+
+    # adds RPX identification to the instance.
+    # Abstracts how the RPX identifier is added to allow for multiplicity of underlying implementations
+		# 
+    def add_rpx_identifier( rpx_id, rpx_provider_name )
+		  self.rpx_identifiers.build(:identifier => rpx_id, :provider_name => rpx_provider_name )
+    end
+
+    # Checks if given identifier is an identity for this account
+    # 
+		def identified_by?( id )
+			self.rpx_identifiers.find_by_identifier( id )
+		end
+		
+		# merge_user_id is an internal method used to merge the actual RPX identifiers
+		# 
+		def merge_user_id( from_user )
+			self.rpx_identifiers << from_user.rpx_identifiers	
+			from_user.reload
+		end
+		
+
+	end
+	
 end
