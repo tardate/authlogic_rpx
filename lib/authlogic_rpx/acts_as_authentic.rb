@@ -106,7 +106,7 @@ module AuthlogicRpx
         			    return nil
         			  end
         			else
-        			  identifier.send( self.class_name.downcase )
+        			  identifier.send( self.to_s.classify.downcase )
         			end
         		end
 			            
