@@ -131,8 +131,8 @@ module AuthlogicRpx
 			end
 
 			# support a block given to the save
-			def save(perform_validation = true, &block)
-				result = super perform_validation
+			def save(options={}, &block)
+				result = super options
 				yield(result) if block_given?
 				result
 			end
