@@ -1,15 +1,13 @@
-require "rubygems"
 begin
+  require 'rubygems'
   gem 'test-unit'
-  require "test/unit"
-  require File.dirname(__FILE__) + "/libs/ext_test_unit"
-rescue Gem::LoadError
+  require 'test/unit'
+rescue LoadError
   # assume using stdlib Test:Unit
-  require "test/unit"
-  require File.dirname(__FILE__) + "/libs/ext_test_unit"
+  require 'test/unit'
 end
+require 'ext_test_unit'
 
-require "ruby-debug"
 require "active_record"
 require "action_controller"
 
@@ -64,13 +62,13 @@ require "authlogic/test_case"
 require "rpx_now"
 RPX_API_KEY = 'abcdefghijklmnopqrstuvwxyz' unless defined? RPX_API_KEY
 
-require File.dirname(__FILE__) + "/../lib/authlogic_rpx"
+require 'authlogic_rpx'
 
-require File.dirname(__FILE__) + "/libs/rails_trickery"
-require File.dirname(__FILE__) + '/libs/rpxresponse'
-require File.dirname(__FILE__) + '/libs/mock_rpx_now'
-require File.dirname(__FILE__) + '/libs/user'
-require File.dirname(__FILE__) + '/libs/user_session'
+require 'rails_trickery'
+require 'rpxresponse'
+require 'mock_rpx_now'
+require 'user'
+require 'user_session'
 
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
