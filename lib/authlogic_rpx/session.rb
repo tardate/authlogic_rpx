@@ -80,6 +80,12 @@ module AuthlogicRpx
 				attempted_record && attempted_record.valid?
 			end
 
+      # TODO: rails 3 authlogic monkeypatch. Not sure if this code is quite right yet
+      def to_key
+        new_record? ? nil : [ self.send(self.class.primary_key) ]
+      end
+
+
 		private
 		  # Tests if current request is for RPX authentication
 		  #
