@@ -1,3 +1,10 @@
+== 1.2.0 released 2010-09-29
+
+* added rails 3 compatibility (GH#24)
+* updated gem support to authlogic 2.1.6 and rpx_now 0.6.23
+* fix GH#21 internal mapping fails if user model is not called "User"
+* fix GH#18 Add methods to retrieve "all rpx users" and "all non-rpx users"
+
 == 1.1.1 released 2010-01-17
 
 * updated gem support to rpx_now 0.6.12 (includes url encoding fix)
