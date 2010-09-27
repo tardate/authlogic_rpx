@@ -52,6 +52,8 @@ Currently tested versions:
 
 Include in config/environment.rb:
   
+  config.gem 'authlogic', :version => '= 2.1.6'
+  config.gem 'rpx_now', :version => '= 0.6.23'
   config.gem 'authlogic_rpx', :version => '>= 1.2.0'
 
 Then to install, run from the command line:
@@ -70,7 +72,9 @@ Include in RAILS_ROOT/.gems:
 
 Include in RAILS_ROOT/Gemfile
 
-  gem "authlogic_rpx",  :version => '>= 1.2.0'
+  gem 'authlogic', '= 2.1.6'
+  gem 'rpx_now', '= 0.6.23'
+  gem 'authlogic_rpx', '= 1.2.0'
 
 
 == About Authlogic_RPX
