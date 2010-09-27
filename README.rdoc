@@ -2,7 +2,7 @@
 
 == Purpose
 
-Authlogic_RPX is an Authlogic extension library that provides support for authentication using the RPX multi-authentication service offered by JanRain. To use RPX, you must first register your application at {RPX}[http://rpxnow.com/]. A free "Basic" account is available, in addition to paid enhanced versions. All work with Authlogic_RPX.  
+Authlogic_RPX is an Authlogic extension library that provides support for authentication using the Janrain Engage (formerly RPX) multi-authentication service offered by JanRain. To use RPX, you must first register your application at {Janrain Engage}[http://rpxnow.com/]. A free "Basic" account is available, in addition to paid enhanced versions. All work with Authlogic_RPX.
 
 Key features and capabilities:
 * You can offer your users all the authentication methods supported by RPX (OpenID, Facebook, twitter, Google, Yahoo!, LinkedIn etc)
@@ -11,6 +11,7 @@ Key features and capabilities:
 * Can co-exist with standard password authentication
 * Allow users to enable RPX authentication for any existing password-enabled accounts
 * Supports identity mapping and merging (allowing users to have multiple logins associated with one member record on your site)
+* Supports Rails 2.3.x and 3.0.x
 
 
 == Authlogic_RPX References
@@ -21,7 +22,8 @@ Key features and capabilities:
 The demonstration Rails application is where you can see Authlogic_RPX in action:
   
 * <b>Live Demonstration Site:</b> [http://rails-authlogic-rpx-sample.heroku.com]
-* <b>Demonstration site source repository:</b> [http://github.com/tardate/rails-authlogic-rpx-sample]
+* <b>Demonstration site source repository (rails2 branch):</b> [http://github.com/tardate/rails-authlogic-rpx-sample]
+* <b>Demonstration site source repository (rails3 branch):</b> [http://github.com/tardate/rails-authlogic-rpx-sample/tree/rails3]
 
 == Authlogic and RPX References
 
@@ -36,25 +38,21 @@ The demonstration Rails application is where you can see Authlogic_RPX in action
 Three gems are required: authlogic, rpx_now, and authlogic_rpx. Install these as appropriate to your environment and preferences.
 
 Currently tested versions:
-* authlogic 2.1.3,2.1.2,2.1.1
-* rpx_now 0.6.12 (0.6.11,0.6.6 support is deprecated)
-* authlogic_rpx 1.1.1
+* authlogic 2.1.6
+* rpx_now 0.6.23
+* authlogic_rpx 1.2.0
 
 
 === 1. Direct gem installation
 
-  sudo gem install authlogic
-  sudo gem install rpx_now --source http://gemcutter.org
-  sudo gem install authlogic_rpx --source http://gemcutter.org
+# installs authlogic and rpx_now gem dependencies
+  sudo gem install authlogic_rpx
 
-
-=== 2. Using Rails config.gems
+=== 2. Using Rails 2.3.x config.gems
 
 Include in config/environment.rb:
   
-  config.gem 'authlogic', :version => '>= 2.1.3'
-  config.gem 'rpx_now', :version => '>= 0.6.12', :source => 'http://gemcutter.org'
-  config.gem 'authlogic_rpx', :version => '>= 1.1.1', :source => 'http://gemcutter.org'
+  config.gem 'authlogic_rpx', :version => '>= 1.2.0'
 
 Then to install, run from the command line:
 
@@ -64,10 +62,15 @@ Then to install, run from the command line:
 === 3. Using .gems file (e.g for heroku.com deployments)
 
 Include in RAILS_ROOT/.gems:
-  
-  authlogic --version '>= 2.1.3'
-  rpx_now --version '>= 0.6.12' --source gemcutter.org
-  authlogic_rpx --version '>= 1.1.1' --source gemcutter.org
+
+  authlogic_rpx --version '>= 1.2.0'
+
+
+=== 4. Using Bundler for Rails 3
+
+Include in RAILS_ROOT/Gemfile
+
+  gem "authlogic_rpx",  :version => '>= 1.2.0'
 
 
 == About Authlogic_RPX
@@ -591,16 +594,13 @@ For example, to insert a login link in a navigation bar is as simple as this:
     <%= link_to "Profile", user_path(:current) %> |
     <%= link_to "Sign out", signout_path %>
     <% else %>
-    <%= rpx_popup( :link_text => "Register/Sign in with RPX..", :app_name => "rails-authlogic-rpx-sample", :return_url => user_sessions_url, :unobtrusive => false ) %>>
+    <%= rpx_popup( :link_text => "Register/Sign in with RPX..", :app_name => RPX_APP_NAME, :return_url => user_sessions_url, :unobtrusive => false ) %>>
     <% end %>
   </div>
 
-<b>NOTE:</b> One of the most common problems people encounter in testing out authlogic_rpx is to <b>no set the correct :app_name</b>.
-The example above shows how this parameter is set for the rails-authlogic-rpx-sample, but you need to replace this value with the
-name you registered at rpxnow.com .
+<b>NOTE:</b> One of the most common problems people encounter in testing out authlogic_rpx is to <b>not set the correct :app_name</b>.
 
-<b>NOTE2:</b> Make sure the application name is entered here all in lowercase. If you do not, it can cause SSL certificate errors to
-be displayed when logging in with certain browsers (notably Android 2.1 webkit).
+<b>NOTE2:</b> Make sure the application name is entered all in lowercase. If you do not, it can cause SSL certificate errors to be displayed when logging in with certain browsers (notably Android 2.1 webkit).
 
 === 8. Allow users to "Add RPX" to existing accounts (optional)
 
@@ -673,7 +673,6 @@ The Authlogic_RPX sample application provides an example of migrating applicatio
   # By default, it does not merge any other details (e.g. application data ownership)
   #
   def before_merge_rpx_data( from_user, to_user )
-  	RAILS_DEFAULT_LOGGER.info "in before_merge_rpx_data: migrate articles and comments from #{from_user.username} to #{to_user.username}"
   	to_user.articles << from_user.articles
   	to_user.comments << from_user.comments
   end
@@ -684,7 +683,6 @@ The Authlogic_RPX sample application provides an example of migrating applicatio
   # By default, does nothing. It could, for example, be used to delete or disable the 'from_user' account
   #
   def after_merge_rpx_data( from_user, to_user )
-  	RAILS_DEFAULT_LOGGER.info "in after_merge_rpx_data: destroy #{from_user.inspect}"	
   	from_user.destroy
   end
 
@@ -733,12 +731,10 @@ Some design principles:
 
 Build and distribute (the gemcutter way):
 
-  # update manifest file
-  $ rake manifest
   # update gemspec
-  $ rake build_gemspec
+  $ rake gemspec
   # build the gem
-  gem build authlogic_rpx.gemspec
+  $ rake build
   # push the gem to gemcutter (e.g. for version 1.0.3)
   gem push authlogic_rpx-1.0.3.gem
 
