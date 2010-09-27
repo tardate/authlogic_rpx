@@ -106,7 +106,7 @@ module AuthlogicRpx
         			    return nil
         			  end
         			else
-        			  identifier.send( self.class_name.downcase )
+        			  identifier.send( self.methods.include?(:class_name) ? self.class_name.downcase : self.to_s.classify.downcase )
         			end
         		end
 			            
@@ -128,13 +128,6 @@ module AuthlogicRpx
 					belongs_to klass.name.downcase.to_sym
         	validates_presence_of "#{klass.name.downcase}_id".to_sym
 				end
-			end
-
-			# support a block given to the save
-			def save(perform_validation = true, &block)
-				result = super perform_validation
-				yield(result) if block_given?
-				result
 			end
 			
 			# test if account it using normal password authentication
